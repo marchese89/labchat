@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -12,32 +13,21 @@ public class ChatServer implements Runnable {
 	public void run() {
 
 		try {
+			int i = 1;
 			ServerSocket s = new ServerSocket(8189);
-			Socket incoming = s.accept();
-			try {
 
-				InputStream inStream = incoming.getInputStream();
-				OutputStream outStream = incoming.getOutputStream();
-				Scanner in = new Scanner(inStream);
-				PrintWriter out = new PrintWriter(outStream, true);
-				out.println("Hello!");
-				out.println("secondo messaggio");
-				boolean done = false;
+			while (true) {
+				Socket incoming = s.accept();
+				System.out.println("Spawning " + i);
+				Runnable r = new ThreadedEchoHandler(incoming, i);
+				Thread t = new Thread(r);
+				t.start();
+				i++;
+			}// while
 
-				while (!done && in.hasNextLine()) {
-					String line = in.nextLine();
-					out.println("Echo: " + line);
-					if (line.trim().equals("bye"))
-						done = true;
-			
-				}// while
-			} finally {
-				incoming.close();
-			}// finally
-		}// try esterno
-		catch (Exception e) {
-			System.out.println("Errore sconosciuto");
-		}// catch
+		} catch (IOException e) {
+
+		}
 
 	}// run
 }// class

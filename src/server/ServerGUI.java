@@ -8,6 +8,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -21,10 +25,11 @@ public class ServerGUI extends JFrame{
 	JScrollPane js;
 	JTextArea ricezione;
 	JTextArea invio;
+	JMenuItem connect;
 	//costruttore
     public ServerGUI(){
     	
-    
+    ActionListener al =  new Ascoltatore();
     
     
 	Toolkit kit = Toolkit.getDefaultToolkit();
@@ -37,14 +42,21 @@ public class ServerGUI extends JFrame{
 	ricezione = new JTextArea(13,30);
 	js=new JScrollPane(ricezione);
 	jp.add(js);
-	invio = new JTextArea(5,30);
+	invio = new JTextArea(4,30);
 	JScrollPane js2 = new JScrollPane(invio);
 	JPanel jp2 = new JPanel();
 	jp2.add(js2);
+	JPanel unione = new JPanel();
+	//unione.setLayout(new BorderLayout());
 	add(jp,BorderLayout.NORTH);
 	add(jp2,BorderLayout.CENTER);
+	//add(unione,BorderLayout.CENTER);//aggiungiamo il pannello composto
+	
+	
+	
+	
 	b = new JButton("Invia");
-	ActionListener al =  new Ascoltatore();
+	
 	b.addActionListener(al);
 	add(b,BorderLayout.AFTER_LAST_LINE);
 	
@@ -82,6 +94,7 @@ public class Ascoltatore implements ActionListener{
 			//jt.append("il listener funziona\n");
 			//System.out.println("il listener funziona");
 		}
+		
 		
 	}
 

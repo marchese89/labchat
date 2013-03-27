@@ -10,6 +10,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -24,9 +28,13 @@ public class ClientGUI extends JFrame{
 	JTextArea ricezione;
 	JTextArea invio;
 	Client cc;
+	ActionListener al;
+	JMenuItem connect;
 	
 	public ClientGUI(){
-    	
+		
+		al =  new Ascoltatore();
+		
 	    Toolkit kit = Toolkit.getDefaultToolkit();
 	    Dimension d = kit.getScreenSize();
 	    setLocation(d.width/4, d.height/4);
@@ -43,8 +51,18 @@ public class ClientGUI extends JFrame{
 		jp2.add(js2);
 		add(jp,BorderLayout.NORTH);
 		add(jp2,BorderLayout.CENTER);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		JMenu fileMenu = new JMenu("File");
+		connect= new JMenuItem("Connetti");
+		connect.addActionListener(al);
+		fileMenu.add(connect);
+		menuBar.add(fileMenu);
+		
+		
 		b = new JButton("Invia");
-		ActionListener al =  new Ascoltatore();
+		
 		b.addActionListener(al);
 		add(b,BorderLayout.AFTER_LAST_LINE);
 		
@@ -74,6 +92,12 @@ public class ClientGUI extends JFrame{
 				invio.setText("");
 				//jt.append("il listener funziona\n");
 				//System.out.println("il listener funziona");
+			}
+			
+			if(e.getSource() == connect){
+				String ip = JOptionPane.showInputDialog("inserire indirizzo ip");
+				cc.connetti(ip);
+				JOptionPane.showMessageDialog(null,null,"connesso al server", 1);
 			}
 			
 		}

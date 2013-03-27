@@ -13,30 +13,32 @@ import javax.swing.JTextArea;
 
 public class Client implements Runnable{
 
-	
 	Scanner s;
 	PrintWriter pr;
 	JTextArea jt;
+	boolean connesso = false;
 	
-	public static void main(String[] args) {
-		
-	}
-    public Client(JTextArea j){
-    	jt = j;
-    	try{
-	
-    		Socket client = new Socket("localhost", 8189);
+	public void connetti(String ip){
+		try{
+			
+    		Socket client = new Socket(ip, 8189);
     		InputStream is = new DataInputStream(client.getInputStream());
     		OutputStream os = new DataOutputStream(client.getOutputStream());
     		s = new Scanner(is);
     		pr = new PrintWriter(os, true);
-    		
+    		connesso = true;
     		}catch(IOException e){
     			e.printStackTrace();
     		}
+	}
+    public Client(JTextArea j){
+    	jt = j;
+    	
     }
 	@Override
 	public void run() {
+		while(true){
+		if(connesso){
 		boolean done = false;
 		while (!done && s.hasNextLine()) {
 			String line = s.nextLine();
@@ -45,7 +47,9 @@ public class Client implements Runnable{
 				done = true;
 
 		}// while
-	}
+		}
+		}//while esterno
+	}//run
 	public void inviaMessaggio(String m){
 		pr.println(m);
 	}

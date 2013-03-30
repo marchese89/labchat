@@ -46,7 +46,7 @@ public class ServerGUI extends JFrame{
 	JScrollPane js2 = new JScrollPane(invio);
 	JPanel jp2 = new JPanel();
 	jp2.add(js2);
-	JPanel unione = new JPanel();
+	//JPanel unione = new JPanel();
 	//unione.setLayout(new BorderLayout());
 	add(jp,BorderLayout.NORTH);
 	add(jp2,BorderLayout.CENTER);
@@ -58,7 +58,7 @@ public class ServerGUI extends JFrame{
 	b = new JButton("Invia");
 	
 	b.addActionListener(al);
-	add(b,BorderLayout.AFTER_LAST_LINE);
+	add(b,BorderLayout.SOUTH);
 	
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setTitle("Chat Server");
@@ -88,7 +88,7 @@ public class Ascoltatore implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == b){
-			s.inviaMessaggio(invio.getText(),1);
+			s.inviaMessaggio(/*"server:"+*/invio.getText(),1);//riga modificata
 			ricezione.append("Hai scritto:\n"+invio.getText()+"\n");
 			invio.setText("");
 			//jt.append("il listener funziona\n");

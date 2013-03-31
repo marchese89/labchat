@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashMap;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,6 +23,9 @@ public class MainClient extends JFrame{
 	
 	JMenuItem connect;
 	ActionListener al;
+	JMenuItem chatWith;
+	NewClient cc;
+	NewClientGUI client;
 	
 	public MainClient(){
 		
@@ -37,10 +41,13 @@ public class MainClient extends JFrame{
 		JMenu fileMenu = new JMenu("File");
 		connect= new JMenuItem("Connetti");
 		connect.addActionListener(al);
+		chatWith = new JMenuItem("Chatta con");
+		chatWith.addActionListener(al);
 		fileMenu.add(connect);
+		fileMenu.add(chatWith);
 		menuBar.add(fileMenu);
 		
-		String[] words = { "angelo","giovanni","ciao3"};
+		String[] words = { "utente1","utente2","utente3","utente4"};
 		JList wordList =new JList(words);
 		wordList.setVisibleRowCount(8);
 		JScrollPane sp= new JScrollPane(wordList);
@@ -56,6 +63,8 @@ public class MainClient extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Main Client");
 		setVisible(true);
+		cc = new NewClient();
+		cc.start();
 	}
 
 	/**
@@ -73,9 +82,14 @@ public class MainClient extends JFrame{
 		
 				if(e.getSource() == connect){
 				String ip = JOptionPane.showInputDialog("inserire indirizzo ip");
-				//cc.connetti(ip);
+				cc.connetti(ip);
 				JOptionPane.showMessageDialog(null,null,"connesso al server", 1);
-			}
+			    }
+				if(e.getSource() == chatWith){
+					cc.login();
+					client = new NewClientGUI(cc);
+					
+				}
 			
 		}
 

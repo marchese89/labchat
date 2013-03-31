@@ -30,12 +30,18 @@ public class RicezioneServer extends Thread {
 					// for (int j = 1; j <= clients.size(); j++) {
 					if (clients.get(j).ciSonoMsg()) {
 						String messaggio = clients.get(j).riceviMsg();
-					    
+					    if(messaggio.charAt(0)=='*'){
+					        st = new StringTokenizer(messaggio,"*");
+					        String d= st.nextToken();
+					        clients.get(Integer.parseInt(d)).setDest(j.toString());
+					        clients.get(Integer.parseInt(d)).inviaMsg(messaggio);
+					    }else if(messaggio.charAt(0)=='+'){
 						//per settare il destinatario dei messaggi
 						st = new StringTokenizer(messaggio,"+",true);
 						if(st.hasMoreTokens())
 						if(st.nextToken().equals("+")){
 							clients.get(j).setDest(st.nextToken());
+						}
 						}else{
 						st = new StringTokenizer(messaggio,":");
 						String dest = st.nextToken();
@@ -45,10 +51,12 @@ public class RicezioneServer extends Thread {
 							jt.append("Il Client " + j + " ha scritto:\n" + msg
 									+ "\n");
 						} else {
+							
 							clients.get(Integer.parseInt(dest)).inviaMsg(
 									/*j + ":" + */msg);
 						}
 						}//se il messaggio non specifica il destinatario
+						
 					}//se ci sono messaggi nella coda di ogni client
 				}//iterazione su tutte le chiavi
 			l.unlock();

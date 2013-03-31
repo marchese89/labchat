@@ -74,4 +74,7 @@ public class GestoreClient extends Thread{
 	public void setDest(String d){
 		this.destinatario = d;
 	}
+	public String getDest(){
+		return destinatario;
+	}
 }

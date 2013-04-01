@@ -10,6 +10,9 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -20,10 +23,11 @@ import javax.swing.JOptionPane;
 		//private JTextArea jt;
 		boolean connesso = false;
 		private StringTokenizer st;
-		private String destinatario;
 		private Socket client;
 		private LinkedList<String> messaggi;
 		private LinkedList<String> utentiInComunicazione;
+		private volatile LinkedList<String> utentiConnessi;
+		private Lock l;
 		private JFrame finestraUtente;
 		
 		public void connetti(String ip){
@@ -44,6 +48,8 @@ import javax.swing.JOptionPane;
 	    	
 	    	messaggi = new LinkedList<String>();
 	    	utentiInComunicazione = new LinkedList<String>();
+	    	utentiConnessi = new LinkedList<String>();
+	    	l = new ReentrantLock();
 	    }
 		@Override
 		public void run() {
@@ -52,28 +58,30 @@ import javax.swing.JOptionPane;
 			if(connesso){
 			boolean done = false;
 			while (!done && s.hasNextLine()) {
-				String line = s.nextLine();
-				//System.out.println("stringa ricevuta "+line);
-			
-				st = new StringTokenizer(line,":*",true);
-				if(st.countTokens()==4){
-					this.destinatario = st.nextToken();
-					pr.println("+"+destinatario);//comunichiamo al server il dest.
+				String line = s.nextLine();		
+				//stiamo ricevendo la lista degli utenti connessi
+				if(line.charAt(0)=='*'){
+					st = new StringTokenizer(line,"*");
+				    l.lock();
+					utentiConnessi.clear();
+					while(st.hasMoreTokens())
+						utentiConnessi.addLast(st.nextToken());
+					    
+					l.unlock();
 				}else{
-				
-				
 				st = new StringTokenizer(line,":");
 				String mittente = st.nextToken();
 				if(!utentiInComunicazione.contains(mittente)){
 					utentiInComunicazione.addLast(mittente);
 					
-				    finestraUtente = new NewClientGUI(this);
+				    finestraUtente = new NewClientGUI(this,mittente);
 				}
 				String msg = st.nextToken();
 				messaggi.addLast(mittente+" ha scritto:\n" + msg+"\n");
 				if (msg.trim().equals("bye"))
 					done = true;
-		        }//se non è il messaggio speciale
+				
+			}//else (mssaggi normali)
 			}// while
 			}
 			}//while esterno
@@ -89,23 +97,23 @@ import javax.swing.JOptionPane;
 	    public String riceviMsg(){
 	    	return messaggi.removeFirst();
 	    }
-		public String getDestinatario(){
-			return destinatario;
-		}
+	    
 		public boolean eConnesso(){
 			return connesso;
 		}
-		public void login(){
-			String dest = JOptionPane.showInputDialog("destinatario");
-			this.destinatario = dest;
-			pr.println("+"+destinatario);//diciamo al server con chi vogliamo
-			                             //comunicare
-			pr.println("*"+destinatario);
-			//dopo aver scelto il destinatario dei nostri messaggi
-			//lo aggiungiamo alla lista degli utenti in comunicazione
-			utentiInComunicazione.addLast(destinatario);
+		/*
+		public void aggiungiUtente(String u){
+			utentiInComunicazione.addLast(u);
 		}
-		
+		*/
+		public synchronized LinkedList<String> utentiConnessi(){
+			return utentiConnessi;
+		}
+		public String login(){
+			String dest = JOptionPane.showInputDialog("destinatario");
+			utentiInComunicazione.addLast(dest);
+			return dest;
+		}
 			
 		
 

@@ -1,5 +1,8 @@
 package client;
-
+/**
+ * riceve i messaggi da un singolo client e li stampa 
+ * sulla JTextArea
+ */
 import javax.swing.JTextArea;
 
 public class RicezioneClient extends Thread{

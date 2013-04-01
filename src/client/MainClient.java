@@ -5,8 +5,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
-
+import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -17,8 +16,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import client.ClientGUI.Ascoltatore;
-
 public class MainClient extends JFrame{
 	
 	JMenuItem connect;
@@ -26,8 +23,17 @@ public class MainClient extends JFrame{
 	JMenuItem chatWith;
 	NewClient cc;
 	NewClientGUI client;
+	//LinkedList<String> utentiConnessi;
+	Vector<String> words;
+	JList<String> wordList;
+
 	
 	public MainClient(){
+		
+		cc = new NewClient();
+		cc.start();
+		
+		
 		
 		al =  new Ascoltatore();
 		Toolkit kit = Toolkit.getDefaultToolkit();
@@ -43,12 +49,14 @@ public class MainClient extends JFrame{
 		connect.addActionListener(al);
 		chatWith = new JMenuItem("Chatta con");
 		chatWith.addActionListener(al);
+		chatWith.setEnabled(false);//rendo non disponibile il tasto per chattare
 		fileMenu.add(connect);
 		fileMenu.add(chatWith);
 		menuBar.add(fileMenu);
+		words= new Vector<String>();
+		words.add("         ");
+		wordList = new JList<String>(words);
 		
-		String[] words = { "utente1","utente2","utente3","utente4"};
-		JList wordList =new JList(words);
 		wordList.setVisibleRowCount(8);
 		JScrollPane sp= new JScrollPane(wordList);
 		JPanel jp = new JPanel();
@@ -63,17 +71,22 @@ public class MainClient extends JFrame{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Main Client");
 		setVisible(true);
-		cc = new NewClient();
-		cc.start();
+		
+		AggiornaConnessi ac = new AggiornaConnessi(cc,wordList,words);
+		ac.start();
+		
 	}
-
-	/**
-	 * @param args
-	 */
+	private  void abilitaChat(){
+		chatWith.setEnabled(true);
+	}
+	private void disabilitaConnetti(){
+		connect.setEnabled(false);
+	}
 	public static void main(String[] args) {
 		JFrame f = new MainClient();
 
 	}
+
 	
 	public class Ascoltatore implements ActionListener{
 
@@ -83,11 +96,14 @@ public class MainClient extends JFrame{
 				if(e.getSource() == connect){
 				String ip = JOptionPane.showInputDialog("inserire indirizzo ip");
 				cc.connetti(ip);
+				abilitaChat();
+				disabilitaConnetti();
 				JOptionPane.showMessageDialog(null,null,"connesso al server", 1);
+
 			    }
 				if(e.getSource() == chatWith){
-					cc.login();
-					client = new NewClientGUI(cc);
+					String dest = cc.login();
+					client = new NewClientGUI(cc,dest);
 					
 				}
 			
@@ -95,5 +111,6 @@ public class MainClient extends JFrame{
 
 	
 	}
+
 
 }

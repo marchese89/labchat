@@ -36,6 +36,8 @@ public class Server implements Runnable {
 		int i = 1;
 		Thread ricez = new RicezioneServer(clients,jt,l);
 		ricez.start();
+		Thread notifica = new NotificaClient(clients, l);
+		notifica.start();
 		while (true) {
 			Socket incoming;
 			try {
@@ -55,7 +57,7 @@ public class Server implements Runnable {
 		}// while
 
 	}
-
+    
 	public void inviaMessaggio(String m,int i) {
 		clients.get(i).inviaMsg(m);
 	}

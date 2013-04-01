@@ -19,7 +19,7 @@ public class GestoreClient extends Thread{
 	private Scanner in;
 	private PrintWriter out;
 	private LinkedList<String> msg;
-	private String destinatario;
+	
 	
 	public GestoreClient(Socket i,int c){
 		incoming = i;
@@ -69,12 +69,7 @@ public class GestoreClient extends Thread{
 	}
 	//per inviare messaggi al client
 	public void inviaMsg(String m){
-		out.println(destinatario+":"+m);
+		out.println(m);
 	}
-	public void setDest(String d){
-		this.destinatario = d;
-	}
-	public String getDest(){
-		return destinatario;
-	}
+	
 }

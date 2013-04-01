@@ -85,7 +85,7 @@ public class Ascoltatore implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == b){
-			s.inviaMessaggio(/*"server:"+*/invio.getText(),1);//riga modificata
+			s.inviaMessaggio("server:"+invio.getText(),1);//riga modificata
 			ricezione.append("Hai scritto:\n"+invio.getText()+"\n");
 			invio.setText("");
 			//jt.append("il listener funziona\n");

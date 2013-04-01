@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -25,8 +26,9 @@ public class NewClientGUI extends JFrame{
 	private String destinatario;
     private RicezioneClient rc;
     
-	public NewClientGUI(NewClient cc) {
+	public NewClientGUI(NewClient cc,String destinatario) {
         
+		this.destinatario = destinatario;
 	    this.cc = cc;
 	
 		al = new Ascoltatore();
@@ -55,13 +57,15 @@ public class NewClientGUI extends JFrame{
 		
 		
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		destinatario = cc.getDestinatario();
+		
 		setTitle("Conversazione con "+destinatario);
 	    setVisible(true);
 	    rc = new RicezioneClient(cc, ricezione);
 	    rc.start();
        
-	}
+	}//costrutture
+	
+
    
 
 	public class Ascoltatore implements ActionListener {
@@ -84,7 +88,8 @@ public class NewClientGUI extends JFrame{
 
 		}
 
-	}
+	}//classe
+	
 
 
 }

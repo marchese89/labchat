@@ -6,7 +6,12 @@ import java.util.concurrent.locks.Lock;
 
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-
+/**
+ * 
+ * @author giovanni
+ * 
+ * Aggiorna la lista degli utenti connessi di ogni singolo client
+ */
 public class AggiornaConnessi extends Thread{
 
    private JList<String> lista;
@@ -35,8 +40,11 @@ public class AggiornaConnessi extends Thread{
 		     lista.setListData(utenti);
 			 lista.repaint();
 			 
-			 System.out.println("utennti connessi: "+utenti);
-			 
+		}else{
+			utenti.clear();
+			lista.setListData(utenti);
+			lista.repaint();
+			//System.out.println("ho azzerato la lista");
 		}
 		
 	   }//if è connesso

@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 		private volatile LinkedList<String> utentiConnessi;
 		private Lock l;
 		private JFrame finestraUtente;
+		private String nomeClient;
 		
 		public void connetti(String ip){
 			try{
@@ -40,12 +41,14 @@ import javax.swing.JOptionPane;
 	    		s = new Scanner(is);
 	    		pr = new PrintWriter(os, true);
 	    		connesso = true;
+	    		pr.println("{"+nomeClient);
 	    		}catch(IOException e){
 	    			e.printStackTrace();
 	    		}
 		}
-	    public NewClient(){
+	    public NewClient(String nomeClient){
 	    	
+	    	this.nomeClient = nomeClient;
 	    	messaggi = new LinkedList<String>();
 	    	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
@@ -114,7 +117,10 @@ import javax.swing.JOptionPane;
 			utentiInComunicazione.addLast(dest);
 			return dest;
 		}
-			
+		public void disconnetti(){
+			pr.println("disconnect");
+			connesso = false;
+		}
 		
 
 	}

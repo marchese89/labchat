@@ -3,16 +3,22 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.text.Keymap;
 
 
 public class NewClientGUI extends JFrame{
@@ -40,21 +46,30 @@ public class NewClientGUI extends JFrame{
 		this.setLayout(new BorderLayout());
         //pannelli vari
 		JPanel jp = new JPanel();
-		ricezione = new JTextArea(13, 30);
+		ricezione = new JTextArea(15, 59);
+		ricezione.setEditable(false);
+		ricezione.setWrapStyleWord(true);
+		ricezione.setLineWrap(true);
 		js = new JScrollPane(ricezione);
 		jp.add(js);
-		invio = new JTextArea(5, 30);
+		invio = new JTextArea(4, 50);
+		invio.setWrapStyleWord(true);//va a capo di parola in parola 
+		invio.setLineWrap(true);//va a capo automaticamente
+		//per far spostare il cursore al punto di partenza dopo l'invio di un messaggio
+		Keymap km = invio.getKeymap ();
+		km.addActionForKeyStroke (KeyStroke.getKeyStroke (KeyEvent.VK_ENTER, 0), new
+		SendAction ());
 		JScrollPane js2 = new JScrollPane(invio);
 		JPanel jp2 = new JPanel();
-		jp2.add(js2);
-		add(jp, BorderLayout.NORTH);
-		add(jp2, BorderLayout.CENTER);
-
+		FlowLayout fl = new FlowLayout();
+		fl.setAlignment(FlowLayout.RIGHT);
+		jp2.setLayout(fl);
 		b = new JButton("Invia");
-
-		b.addActionListener(al);
-		add(b, BorderLayout.AFTER_LAST_LINE);
-		
+        b.addActionListener(al);
+		jp2.add(js2);
+		jp2.add(b);
+		add(jp, BorderLayout.EAST);
+		add(jp2, BorderLayout.SOUTH);
 		
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -68,20 +83,16 @@ public class NewClientGUI extends JFrame{
 
    
 
-	public class Ascoltatore implements ActionListener {
+	class Ascoltatore implements ActionListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getSource() == b) {
-				if (!destinatario.equals("server")) {
-					Integer d = Integer.parseInt(destinatario);
-					cc.inviaMessaggio(d + ":" + invio.getText());
-					ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
-				} else {
-					cc.inviaMessaggio(destinatario + ":" + invio.getText());
-					ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
-				}
-				invio.setText("");
+				  if(!invio.getText().equals("")){
+		          cc.inviaMessaggio(destinatario + ":" + invio.getText());
+			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+				  invio.setText("");
+				  }
 			}
 
 		
@@ -89,7 +100,15 @@ public class NewClientGUI extends JFrame{
 		}
 
 	}//classe
-	
+	private class SendAction extends AbstractAction{
+	    public void actionPerformed (ActionEvent e){
+	    	if(!invio.getText().equals("")){
+		          cc.inviaMessaggio(destinatario + ":" + invio.getText());
+			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+				  invio.setText("");
+				  }
+	    }
+	}
 
 
 }

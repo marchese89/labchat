@@ -17,13 +17,13 @@ public class Server implements Runnable {
 
 	private ServerSocket s;
 	private JTextArea jt;
-	private HashMap<Integer, GestoreClient> clients;
+	private HashMap<String, GestoreClient> clients;
 	private Lock l; 
 	
 	
 	public Server(JTextArea j) {
 		jt = j;
-		clients = new HashMap<Integer, GestoreClient>();
+		clients = new HashMap<String, GestoreClient>();
 		try {
 			s = new ServerSocket(8189);
 		} catch (IOException e) {
@@ -33,7 +33,7 @@ public class Server implements Runnable {
 	}
 
 	public void run() {
-		int i = 1;
+		
 		Thread ricez = new RicezioneServer(clients,jt,l);
 		ricez.start();
 		Thread notifica = new NotificaClient(clients, l);
@@ -42,11 +42,14 @@ public class Server implements Runnable {
 			Socket incoming;
 			try {
 				incoming = s.accept();
-				GestoreClient t = new GestoreClient(incoming, i);
-				l.lock();
-				clients.put(i, t);
+				GestoreClient t = new GestoreClient(incoming);
 				t.start();
-				i++;
+				l.lock();
+				while(!t.nomeClientPronto()){
+					//System.out.println("nome client ancora non pronto");
+					}
+				clients.put(t.getNomeClient(), t);
+				
 				l.unlock();
 				
 

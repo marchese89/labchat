@@ -5,6 +5,9 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -19,23 +22,25 @@ import javax.swing.JScrollPane;
 public class MainClient extends JFrame{
 	
 	JMenuItem connect;
-	ActionListener al;
 	JMenuItem chatWith;
+	JMenuItem disconnect;
+	ActionListener al;
+	WindowListener wl;
 	NewClient cc;
 	NewClientGUI client;
 	//LinkedList<String> utentiConnessi;
 	Vector<String> words;
 	JList<String> wordList;
+	String nomeClient;
 
 	
 	public MainClient(){
 		
-		cc = new NewClient();
-		cc.start();
-		
-		
 		
 		al =  new Ascoltatore();
+		wl = new AscoltatoreFinestra();
+		addWindowListener(wl);
+		
 		Toolkit kit = Toolkit.getDefaultToolkit();
 	    Dimension d = kit.getScreenSize();
 	    setLocation(d.width/4, 0);
@@ -47,16 +52,20 @@ public class MainClient extends JFrame{
 		JMenu fileMenu = new JMenu("File");
 		connect= new JMenuItem("Connetti");
 		connect.addActionListener(al);
+		disconnect = new JMenuItem("disconnetti");
+		disconnect.addActionListener(al);
 		chatWith = new JMenuItem("Chatta con");
 		chatWith.addActionListener(al);
 		chatWith.setEnabled(false);//rendo non disponibile il tasto per chattare
+		disconnect.setEnabled(false);
 		fileMenu.add(connect);
+		fileMenu.add(disconnect);
 		fileMenu.add(chatWith);
 		menuBar.add(fileMenu);
 		words= new Vector<String>();
-		words.add("         ");
+	
 		wordList = new JList<String>(words);
-		
+		wordList.setMinimumSize(new Dimension(HEIGHT, WIDTH));
 		wordList.setVisibleRowCount(8);
 		JScrollPane sp= new JScrollPane(wordList);
 		JPanel jp = new JPanel();
@@ -72,8 +81,7 @@ public class MainClient extends JFrame{
 		setTitle("Main Client");
 		setVisible(true);
 		
-		AggiornaConnessi ac = new AggiornaConnessi(cc,wordList,words);
-		ac.start();
+		
 		
 	}
 	private  void abilitaChat(){
@@ -86,7 +94,6 @@ public class MainClient extends JFrame{
 		JFrame f = new MainClient();
 
 	}
-
 	
 	public class Ascoltatore implements ActionListener{
 
@@ -95,9 +102,22 @@ public class MainClient extends JFrame{
 		
 				if(e.getSource() == connect){
 				String ip = JOptionPane.showInputDialog("inserire indirizzo ip");
+				
+				
+				String nome = JOptionPane.showInputDialog("login con nome");
+				nomeClient = new String(nome);
+				
+				cc = new NewClient(nomeClient);
+				cc.start();
+				
+				AggiornaConnessi ac = new AggiornaConnessi(cc,wordList,words);
+				ac.start();
+				
 				cc.connetti(ip);
 				abilitaChat();
 				disabilitaConnetti();
+				disconnect.setEnabled(true);
+				
 				JOptionPane.showMessageDialog(null,null,"connesso al server", 1);
 
 			    }
@@ -106,10 +126,33 @@ public class MainClient extends JFrame{
 					client = new NewClientGUI(cc,dest);
 					
 				}
+				if(e.getSource() == disconnect){
+					cc.disconnetti();
+					chatWith.setEnabled(false);
+					connect.setEnabled(true);
+					//cancello l'elenco degli utenti connessi
+					words = new Vector<String>();
+					wordList.setListData(words);
+					wordList.repaint();
+					
+				}
 			
 		}
 
 	
+	}//classe interna
+	class AscoltatoreFinestra extends WindowAdapter{
+
+
+
+		@Override
+		public void windowClosing(WindowEvent e) {
+			cc.disconnetti();
+			//System.out.println("provo a disconnettermi");
+			
+		}
+
+		
 	}
 
 

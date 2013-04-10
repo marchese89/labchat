@@ -30,8 +30,12 @@ import javax.swing.JOptionPane;
 		private Lock l;
 		private JFrame finestraUtente;
 		private String nomeClient;
+		private String password;
+		private String email;
+		private boolean nuovoUtente;
 		
-		public void connetti(String ip){
+		public boolean connetti(String ip){
+			boolean risultato = false;
 			try{
 				//instauriamo una connessione con il server ed estraiamo
 				//gli strumenti per inviare e ricevere testo
@@ -40,15 +44,49 @@ import javax.swing.JOptionPane;
 	    		OutputStream os = new DataOutputStream(client.getOutputStream());
 	    		s = new Scanner(is);
 	    		pr = new PrintWriter(os, true);
-	    		connesso = true;
-	    		pr.println("{"+nomeClient);
+	    		
+	    		if(nuovoUtente){//se ci stiamo registrando inviamo un mess speciale
+	    			pr.println("N"+":"+nomeClient+":"+password+":"+email);
+	    			risultato = true;
+	    		}else{
+	    		pr.println("{"+nomeClient+"{"+password);
+	    		boolean done = false;
+	    		while(!done && s.hasNextLine()){
+	    			String result = s.nextLine();
+	    			if(result.equals("correctlogin")){
+	    				connesso = true;
+	    				done = true;
+	    			    risultato = true;
+	    			}
+	    			if(result.equals("failedlogin")){
+	    				done = true;
+	    				risultato = false;
+	    			}
+	    				
+	    		}
+	    		}
 	    		}catch(IOException e){
 	    			e.printStackTrace();
 	    		}
-		}
-	    public NewClient(String nomeClient){
+			
+			return risultato;
+		}//connetti
+	    public NewClient(String nomeClient,String password,String email,boolean nU){
 	    	
 	    	this.nomeClient = nomeClient;
+	    	this.password = password;
+	    	this.nuovoUtente = nU;
+	    	this.email = email;
+	    	messaggi = new LinkedList<String>();
+	    	utentiInComunicazione = new LinkedList<String>();
+	    	utentiConnessi = new LinkedList<String>();
+	    	l = new ReentrantLock();
+	    }
+	    public NewClient(String nomeClient,String password,boolean nU){
+	    	
+	    	this.nomeClient = nomeClient;
+	    	this.password = password;
+	    	this.nuovoUtente = nU;
 	    	messaggi = new LinkedList<String>();
 	    	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
@@ -79,6 +117,7 @@ import javax.swing.JOptionPane;
 					
 				    finestraUtente = new NewClientGUI(this,mittente);
 				}
+				
 				String msg = st.nextToken();
 				messaggi.addLast(mittente+" ha scritto:\n" + msg+"\n");
 				if (msg.trim().equals("bye"))
@@ -103,6 +142,9 @@ import javax.swing.JOptionPane;
 	    
 		public boolean eConnesso(){
 			return connesso;
+		}
+		public boolean nuovoUtente(){
+			return nuovoUtente;
 		}
 		/*
 		public void aggiungiUtente(String u){

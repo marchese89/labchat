@@ -6,7 +6,14 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -16,14 +23,18 @@ import javax.swing.JTextArea;
 public class Server implements Runnable {
 
 	private ServerSocket s;
+	private GestoreClient t;
 	private JTextArea jt;
 	private HashMap<String, GestoreClient> clients;
-	private Lock l; 
-	
-	
+	private Lock l;
+	private Statement stat;
+	private Connection conn;
+	private HashMap<String, LinkedList<String>> messaggiOffline;
+
 	public Server(JTextArea j) {
 		jt = j;
 		clients = new HashMap<String, GestoreClient>();
+		messaggiOffline = new HashMap<String, LinkedList<String>>();
 		try {
 			s = new ServerSocket(8189);
 		} catch (IOException e) {
@@ -33,25 +44,57 @@ public class Server implements Runnable {
 	}
 
 	public void run() {
-		
-		Thread ricez = new RicezioneServer(clients,jt,l);
+
+		Thread ricez = new RicezioneServer(clients, messaggiOffline, jt, l);
 		ricez.start();
 		Thread notifica = new NotificaClient(clients, l);
 		notifica.start();
+
+		// connessione al DB
+		try {
+			conn = getConnection();
+			System.out.println("Connessione DB Stabilita");
+			// stat = conn.createStatement();
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+
 		while (true) {
 			Socket incoming;
 			try {
 				incoming = s.accept();
-				GestoreClient t = new GestoreClient(incoming);
+				t = new GestoreClient(incoming);
 				t.start();
 				l.lock();
-				while(!t.nomeClientPronto()){
-					//System.out.println("nome client ancora non pronto");
+				while (!t.nomeClientPronto()) {
+				}
+				while (!t.passwordPronta()) {
+				}
+
+				if (!t.eNuovo()) {
+					boolean pwBuona = verificaPass();
+					if (pwBuona) {
+						clients.put(t.getNomeClient(), t);
+						t.inviaMsg("correctlogin");
+						// appena il client si connette gli mandiamo tutti i
+						// mess che
+						// ha ricevuto quando era offline
+						if (messaggiOffline.containsKey(t.getNomeClient())) {
+							LinkedList<String> ll = messaggiOffline.get(t
+									.getNomeClient());
+							while (ll.size() > 0)
+								t.inviaMsg(ll.removeFirst());
+						}
+					} else
+						t.inviaMsg("failedlogin");
+				}// se è un utente già registrato
+				else {
+					while (!t.emailPronta()) {
 					}
-				clients.put(t.getNomeClient(), t);
-				
+					aggiungiUtente(t.getNomeClient(), t.getPassword(),
+							t.getEmail());
+				}
 				l.unlock();
-				
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -59,9 +102,62 @@ public class Server implements Runnable {
 
 		}// while
 
+	}// run
+
+	private void aggiungiUtente(String username, String password, String email) {
+		try {
+			PreparedStatement statement = conn
+					.prepareStatement("INSERT INTO utentiregistrati VALUES(?,?,?);");
+			System.out.println("inserimento di " + username + " ecc");
+			statement.setString(1, username);
+			statement.setString(2, password);
+			statement.setString(3, email);
+			statement.execute();
+			/*
+			 * statement =
+			 * conn.prepareStatement("SELECT * FROM utentiregistrati");
+			 * ResultSet r = statement.executeQuery(); while(r.next()){
+			 * System.out
+			 * .println(r.getString(1)+" "+r.getString(2)+" "+r.getString(3)); }
+			 */
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
-    
-	public void inviaMessaggio(String m,int i) {
+
+	private boolean verificaPass() {
+		boolean pwCorretta = false;
+
+		try {
+			PreparedStatement statement = conn
+					.prepareStatement("SELECT * FROM utentiregistrati WHERE username = ?;");
+			statement.setString(1, t.getNomeClient());
+			ResultSet result = statement.executeQuery();
+
+			while (result.next()) {
+				String password = result.getString(2);
+				if (password.equals(t.getPassword()))
+					pwCorretta = true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return pwCorretta;
+	}
+
+	public static Connection getConnection() throws SQLException {
+
+		String drivers = "com.mysql.jdbc.Driver";
+		String url = "jdbc:mysql://localhost:3306/utentichat";//
+		String username = "root";
+		String password = ".jhwh888.";
+
+		System.setProperty("jdbc.drivers", drivers);
+
+		return DriverManager.getConnection(url, username, password);
+	}
+
+	public void inviaMessaggio(String m, int i) {
 		clients.get(i).inviaMsg(m);
 	}
 

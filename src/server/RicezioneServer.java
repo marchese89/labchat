@@ -8,6 +8,7 @@ package server;
  * 
  */
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
@@ -19,10 +20,14 @@ public class RicezioneServer extends Thread {
 	private StringTokenizer st;
 	private volatile Set<String> chiavi;
 	private Lock l;
-	public RicezioneServer(HashMap<String, GestoreClient> clients, JTextArea jt,Lock l) {
+	private HashMap<String,LinkedList<String>> messaggiOffline;
+	
+	public RicezioneServer(HashMap<String, GestoreClient> clients,
+			HashMap<String,LinkedList<String>> messaggiOffline,JTextArea jt,Lock l) {
 		this.clients = clients;
 		this.jt = jt;
 		this.l = l;
+		this.messaggiOffline = messaggiOffline;
 	}
     //iteriamo sulle chiavi dell'HashMap e riceviamo i messaggi
 	//smistandoli ai rispettivi destinatari
@@ -50,9 +55,13 @@ public class RicezioneServer extends Thread {
 							jt.append("Il Client " + j + " ha scritto:\n" + msg
 									+ "\n");
 						} else {
-							
+							if(clients.containsKey(dest)){
 							clients.get(dest).inviaMsg(
 									j + ":" + msg);
+							}else{//il client è offline
+								messaggiOffline.put(dest, new LinkedList<String>());
+								messaggiOffline.get(dest).addLast(j + ":" + msg);
+							}
 						}
 						}//se non è un messaggio di disconnessione
 					}//se ci sono messaggi nella coda di ogni client

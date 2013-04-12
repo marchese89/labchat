@@ -8,6 +8,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -27,6 +33,9 @@ public class MainClient extends JFrame{
 	private JMenuItem disconnect;
 	private JMenuItem datiDimenticati;
 	private JMenuItem iscriviti;
+	private JMenuItem aggiungiContatto;
+	private JMenuItem rimuoviContatto;
+	private JMenuItem listaContatti;
 	private ActionListener al;
 	private WindowListener wl;
 	private NewClient cc;
@@ -36,9 +45,13 @@ public class MainClient extends JFrame{
 	JList<String> wordList;
 	private String nomeClient;
     private String password;
+    private Connection conn;
+	private PreparedStatement stat;
+    private LinkedList<String> contatti;
 	
 	public MainClient(){
 		
+		contatti = new LinkedList<String>();
 		
 		al =  new Ascoltatore();
 		wl = new AscoltatoreFinestra();
@@ -54,6 +67,7 @@ public class MainClient extends JFrame{
 		setJMenuBar(menuBar);
 		JMenu fileMenu = new JMenu("File");
 		JMenu aiuto = new JMenu("Aiuto");
+		JMenu opzioni = new JMenu("Opzioni");
 		datiDimenticati = new JMenuItem("Dati Dimenticati");
 		datiDimenticati.addActionListener(al);
 		iscriviti = new JMenuItem("Iscrizione");
@@ -64,15 +78,28 @@ public class MainClient extends JFrame{
 		disconnect.addActionListener(al);
 		chatWith = new JMenuItem("Chatta con");
 		chatWith.addActionListener(al);
+		aggiungiContatto = new JMenuItem("Aggiungi Contatto");
+		aggiungiContatto.addActionListener(al);
+		aggiungiContatto.setEnabled(false);
 		chatWith.setEnabled(false);//rendo non disponibile il tasto per chattare
 		disconnect.setEnabled(false);
+		rimuoviContatto = new JMenuItem("Rimuovi Contatto");
+		rimuoviContatto.addActionListener(al);
+		rimuoviContatto.setEnabled(false);
+	    listaContatti = new JMenuItem("Lista Contatti");
+	    listaContatti.addActionListener(al);
+	    listaContatti.setEnabled(false);
 		fileMenu.add(connect);
 		fileMenu.add(disconnect);
 		fileMenu.add(chatWith);
 		aiuto.add(datiDimenticati);//se l'utente ha dimenticato i suoi dati
 		aiuto.add(iscriviti);//per la registrazione di un nuovo utente
+		opzioni.add(listaContatti);
+		opzioni.add(aggiungiContatto);
+		opzioni.add(rimuoviContatto);
 		menuBar.add(fileMenu);
 		menuBar.add(aiuto);
+		menuBar.add(opzioni);
 		words= new Vector<String>();
 	
 		wordList = new JList<String>(words);// Lista utenti connessi
@@ -105,6 +132,7 @@ public class MainClient extends JFrame{
 		JFrame f = new MainClient();
 
 	}
+
 	
 	public class Ascoltatore implements ActionListener{
 
@@ -138,8 +166,11 @@ public class MainClient extends JFrame{
 				abilitaChat();
 				disabilitaConnetti();
 				disconnect.setEnabled(true);
-				
-				JOptionPane.showMessageDialog(null,null,"connesso al server", 1);
+				aggiungiContatto.setEnabled(true);
+				listaContatti.setEnabled(true);
+				iscriviti.setEnabled(false);
+				rimuoviContatto.setEnabled(true);
+				JOptionPane.showMessageDialog(null,null,"connesso al server",1);
 				}else{
 					JOptionPane.showMessageDialog
 					(null,null, "Username e/o password Errati",JOptionPane.ERROR_MESSAGE);
@@ -165,6 +196,7 @@ public class MainClient extends JFrame{
 					cc.disconnetti();
 					chatWith.setEnabled(false);
 					connect.setEnabled(true);
+					iscriviti.setEnabled(true);
 					//cancello l'elenco degli utenti connessi
 					words = new Vector<String>();
 					wordList.setListData(words);
@@ -191,6 +223,25 @@ public class MainClient extends JFrame{
 						(null, "Iscrizione avvenuta con succeso");
 					}
 				}
+				
+				if(e.getSource() == aggiungiContatto){
+					if(cc.eConnesso()){
+					String nomeContatto = JOptionPane.showInputDialog("Nome Contatto");
+					cc.inviaMessaggio("A:"+nomeContatto);//richiesta aggiunta contatto
+					JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+					}
+				}
+				if(e.getSource() == listaContatti){
+			
+					contatti = cc.getListaContatti();
+					JFrame pC = new PannelloContatti(contatti);
+				}
+				if(e.getSource() == rimuoviContatto){
+					String toRemove = JOptionPane.showInputDialog
+							("Nome Contatto da Rimuovere");
+					cc.inviaMessaggio("R"+toRemove);//richiesta cancellazione contatto
+					JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+				}
 			
 		}//actionPerformed
 
@@ -210,7 +261,7 @@ public class MainClient extends JFrame{
 		}
 
 		
-	}
+	}//classe interna
 
 
 }

@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 		private String password;
 		private String email;
 		private boolean nuovoUtente;
+		private LinkedList<String> listaContatti;
 		
 		public boolean connetti(String ip){
 			boolean risultato = false;
@@ -81,6 +82,7 @@ import javax.swing.JOptionPane;
 	    	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
+	    	this.listaContatti = new LinkedList<String>();
 	    }
 	    public NewClient(String nomeClient,String password,boolean nU){
 	    	
@@ -91,6 +93,7 @@ import javax.swing.JOptionPane;
 	    	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
+	    	this.listaContatti = new LinkedList<String>();
 	    }
 		@Override
 		public void run() {
@@ -109,6 +112,23 @@ import javax.swing.JOptionPane;
 						utentiConnessi.addLast(st.nextToken());
 					    
 					l.unlock();
+				}else if(line.charAt(0)=='?'){//messaggio aggiunta contatto
+					st = new StringTokenizer(line,"?");
+			        String mitt = st.nextToken();
+					int ris =JOptionPane.showConfirmDialog
+					(null, "L'utente "+mitt+" vuole aggiungerti come contatto, Accetti");
+					if(ris == JOptionPane.OK_OPTION){
+						inviaMessaggio("["+nomeClient+"["+mitt);//conferma richiesta
+					}
+					
+				}else if(line.charAt(0)=='['){
+					l.lock();
+					listaContatti.clear();
+					st = new StringTokenizer(line, "[");
+					while(st.hasMoreTokens())
+						listaContatti.add(st.nextToken());
+					l.unlock();
+					
 				}else{
 				st = new StringTokenizer(line,":");
 				String mittente = st.nextToken();
@@ -163,7 +183,9 @@ import javax.swing.JOptionPane;
 			pr.println("disconnect");
 			connesso = false;
 		}
-		
+		public LinkedList<String> getListaContatti(){
+			return listaContatti;
+		}
 
 	}
 

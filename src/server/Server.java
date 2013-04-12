@@ -45,12 +45,7 @@ public class Server implements Runnable {
 
 	public void run() {
 
-		Thread ricez = new RicezioneServer(clients, messaggiOffline, jt, l);
-		ricez.start();
-		Thread notifica = new NotificaClient(clients, l);
-		notifica.start();
-
-		// connessione al DB
+       // connessione al DB
 		try {
 			conn = getConnection();
 			System.out.println("Connessione DB Stabilita");
@@ -58,7 +53,14 @@ public class Server implements Runnable {
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-
+		
+		Thread ricez = new RicezioneServer(clients, messaggiOffline, jt, l,conn);
+		ricez.start();
+		
+		Thread notifica = new NotificaClient(clients, l,conn);
+		notifica.start();
+		
+		
 		while (true) {
 			Socket incoming;
 			try {
@@ -108,18 +110,12 @@ public class Server implements Runnable {
 		try {
 			PreparedStatement statement = conn
 					.prepareStatement("INSERT INTO utentiregistrati VALUES(?,?,?);");
-			System.out.println("inserimento di " + username + " ecc");
+			
 			statement.setString(1, username);
 			statement.setString(2, password);
 			statement.setString(3, email);
 			statement.execute();
-			/*
-			 * statement =
-			 * conn.prepareStatement("SELECT * FROM utentiregistrati");
-			 * ResultSet r = statement.executeQuery(); while(r.next()){
-			 * System.out
-			 * .println(r.getString(1)+" "+r.getString(2)+" "+r.getString(3)); }
-			 */
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

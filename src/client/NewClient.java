@@ -1,5 +1,7 @@
 package client;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,8 +9,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,7 +33,8 @@ import javax.swing.JOptionPane;
 		private LinkedList<String> utentiInComunicazione;
 		private volatile LinkedList<String> utentiConnessi;
 		private Lock l;
-		private JFrame finestraUtente;
+		//private JFrame finestraUtente;
+		private HashMap<String,JFrame> finestreUtenti; 
 		private String nomeClient;
 		private String password;
 		private String email;
@@ -83,6 +89,7 @@ import javax.swing.JOptionPane;
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
 	    	this.listaContatti = new LinkedList<String>();
+	    	finestreUtenti = new HashMap<String,JFrame>();
 	    }
 	    public NewClient(String nomeClient,String password,boolean nU){
 	    	
@@ -94,6 +101,7 @@ import javax.swing.JOptionPane;
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
 	    	this.listaContatti = new LinkedList<String>();
+	    	finestreUtenti = new HashMap<String,JFrame>();
 	    }
 		@Override
 		public void run() {
@@ -135,7 +143,8 @@ import javax.swing.JOptionPane;
 				if(!utentiInComunicazione.contains(mittente)){
 					utentiInComunicazione.addLast(mittente);
 					
-				    finestraUtente = new NewClientGUI(this,mittente);
+				    JFrame f = new NewClientGUI(this,mittente);
+				    finestreUtenti.put(mittente, f);
 				}
 				
 				String msg = st.nextToken();
@@ -185,6 +194,19 @@ import javax.swing.JOptionPane;
 		}
 		public LinkedList<String> getListaContatti(){
 			return listaContatti;
+		}
+		
+		public void setFont(Font f){
+			Set<String> utenti = finestreUtenti.keySet();
+			for(String i: utenti){
+				finestreUtenti.get(i).setFont(f);
+			}
+		}
+		public void setForeground(Color c){
+			Set<String> utenti = finestreUtenti.keySet();
+			for(String i: utenti){
+				finestreUtenti.get(i).setForeground(c);
+			}
 		}
 
 	}

@@ -2,8 +2,10 @@ package client;
 
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,15 +48,17 @@ public class NewClientGUI extends JFrame{
 		this.setLayout(new BorderLayout());
         //pannelli vari
 		JPanel jp = new JPanel();
-		ricezione = new JTextArea(15, 59);
+		ricezione = new JTextArea(15, 50);
 		ricezione.setEditable(false);
 		ricezione.setWrapStyleWord(true);
 		ricezione.setLineWrap(true);
+		ricezione.setFont(new Font("Arial Black", Font.BOLD, 12));//ingrandisce il testo
 		js = new JScrollPane(ricezione);
 		jp.add(js);
-		invio = new JTextArea(4, 50);
+		invio = new JTextArea(4, 45);
 		invio.setWrapStyleWord(true);//va a capo di parola in parola 
 		invio.setLineWrap(true);//va a capo automaticamente
+		invio.setFont(new Font("Arial Black",Font.BOLD,12));
 		//per far spostare il cursore al punto di partenza dopo l'invio di un messaggio
 		Keymap km = invio.getKeymap ();
 		km.addActionForKeyStroke (KeyStroke.getKeyStroke (KeyEvent.VK_ENTER, 0), new
@@ -80,7 +84,16 @@ public class NewClientGUI extends JFrame{
        
 	}//costrutture
 	
-
+	public void setFont(Font f){
+		ricezione.setFont(f);
+		invio.setFont(f);
+		//repaint();
+	}
+    public void setForeground(Color c){
+    	ricezione.setForeground(c);
+    	invio.setForeground(c);
+    	//repaint();
+    }
    
 
 	class Ascoltatore implements ActionListener {

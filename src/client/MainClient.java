@@ -1,7 +1,9 @@
 package client;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,7 +15,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -36,10 +40,12 @@ public class MainClient extends JFrame{
 	private JMenuItem aggiungiContatto;
 	private JMenuItem rimuoviContatto;
 	private JMenuItem listaContatti;
+	private JMenuItem stileTesto;
 	private ActionListener al;
 	private WindowListener wl;
 	private NewClient cc;
-	private NewClientGUI client;
+	private HashMap<String,JFrame> finestreUtenti;
+	//private NewClientGUI client;
 	//LinkedList<String> utentiConnessi;
 	Vector<String> words;
 	JList<String> wordList;
@@ -48,10 +54,18 @@ public class MainClient extends JFrame{
     private Connection conn;
 	private PreparedStatement stat;
     private LinkedList<String> contatti;
+	private MainClient mc;
+	private Font font;
+	private Color colore;
 	
 	public MainClient(){
 		
+		this.font =  new Font("Verdana", Font.BOLD, 12);
+		this.colore = Color.BLACK;
+		
+		this.mc = this;
 		contatti = new LinkedList<String>();
+		finestreUtenti = new HashMap<String,JFrame>();
 		
 		al =  new Ascoltatore();
 		wl = new AscoltatoreFinestra();
@@ -68,6 +82,7 @@ public class MainClient extends JFrame{
 		JMenu fileMenu = new JMenu("File");
 		JMenu aiuto = new JMenu("Aiuto");
 		JMenu opzioni = new JMenu("Opzioni");
+		JMenu personalizza = new JMenu("Personalizza");
 		datiDimenticati = new JMenuItem("Dati Dimenticati");
 		datiDimenticati.addActionListener(al);
 		iscriviti = new JMenuItem("Iscrizione");
@@ -89,6 +104,8 @@ public class MainClient extends JFrame{
 	    listaContatti = new JMenuItem("Lista Contatti");
 	    listaContatti.addActionListener(al);
 	    listaContatti.setEnabled(false);
+	    stileTesto = new JMenuItem("Stile Testo");
+	    stileTesto.addActionListener(al);
 		fileMenu.add(connect);
 		fileMenu.add(disconnect);
 		fileMenu.add(chatWith);
@@ -97,13 +114,16 @@ public class MainClient extends JFrame{
 		opzioni.add(listaContatti);
 		opzioni.add(aggiungiContatto);
 		opzioni.add(rimuoviContatto);
+		personalizza.add(stileTesto);
 		menuBar.add(fileMenu);
 		menuBar.add(aiuto);
 		menuBar.add(opzioni);
+		menuBar.add(personalizza);
 		words= new Vector<String>();
 	
 		wordList = new JList<String>(words);// Lista utenti connessi
 		wordList.setMinimumSize(new Dimension(HEIGHT, WIDTH));
+		wordList.setPreferredSize(new Dimension(HEIGHT,WIDTH));
 		wordList.setVisibleRowCount(8);
 		JScrollPane sp= new JScrollPane(wordList);
 		JPanel jp = new JPanel();
@@ -121,12 +141,31 @@ public class MainClient extends JFrame{
 		
 		
 		
-	}
+	}//costruttore
 	private  void abilitaChat(){
 		chatWith.setEnabled(true);
 	}
 	private void disabilitaConnetti(){
 		connect.setEnabled(false);
+	}
+	
+	public void setFont(Font f){
+		Set<String> utenti = finestreUtenti.keySet();
+		for(String i: utenti){
+			finestreUtenti.get(i).setFont(f);
+		}
+		if(!(cc == null))
+		cc.setFont(f);//modifichiamo il font delle finestre di NewClient
+		this.font = f;//modifichiamo il font delle future finestre
+	}
+	public void setForeground(Color c){
+		Set<String> utenti = finestreUtenti.keySet();
+		for(String i: utenti){
+			finestreUtenti.get(i).setForeground(c);
+		}
+		if(!(cc == null))
+		cc.setForeground(c);//modifichiamo il colore delle finestre di NewClient
+		this.colore = c;
 	}
 	public static void main(String[] args) {
 		JFrame f = new MainClient();
@@ -170,6 +209,9 @@ public class MainClient extends JFrame{
 				listaContatti.setEnabled(true);
 				iscriviti.setEnabled(false);
 				rimuoviContatto.setEnabled(true);
+				
+				setFont(font);
+				setForeground(colore);
 				JOptionPane.showMessageDialog(null,null,"connesso al server",1);
 				}else{
 					JOptionPane.showMessageDialog
@@ -189,7 +231,10 @@ public class MainClient extends JFrame{
 				
 				if(e.getSource() == chatWith){
 					String dest = cc.login();
-					client = new NewClientGUI(cc,dest);
+					NewClientGUI f = new NewClientGUI(cc,dest);
+					f.setFont(font);
+					f.setForeground(colore);
+					finestreUtenti.put(dest, f);
 					
 				}
 				if(e.getSource() == disconnect){
@@ -227,9 +272,16 @@ public class MainClient extends JFrame{
 				if(e.getSource() == aggiungiContatto){
 					if(cc.eConnesso()){
 					String nomeContatto = JOptionPane.showInputDialog("Nome Contatto");
+					contatti = cc.getListaContatti();
+					if(!contatti.contains(nomeContatto)  && 
+							(!nomeContatto.equals(nomeClient))){
 					cc.inviaMessaggio("A:"+nomeContatto);//richiesta aggiunta contatto
 					JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+					}else{
+						JOptionPane.showMessageDialog
+						(null, null, "Contatto già presente", JOptionPane.ERROR_MESSAGE);
 					}
+					}//se è connesso
 				}
 				if(e.getSource() == listaContatti){
 			
@@ -241,6 +293,9 @@ public class MainClient extends JFrame{
 							("Nome Contatto da Rimuovere");
 					cc.inviaMessaggio("R"+toRemove);//richiesta cancellazione contatto
 					JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+				}
+				if(e.getSource() == stileTesto){
+					PannelloFont pf = new PannelloFont(mc);
 				}
 			
 		}//actionPerformed

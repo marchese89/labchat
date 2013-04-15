@@ -43,7 +43,7 @@ public class MainClient extends JFrame{
 	private JMenuItem stileTesto;
 	private ActionListener al;
 	private WindowListener wl;
-	private NewClient cc;
+	private Client cc;
 	private HashMap<String,JFrame> finestreUtenti;
 	//private NewClientGUI client;
 	//LinkedList<String> utentiConnessi;
@@ -194,7 +194,7 @@ public class MainClient extends JFrame{
 					  password = new String(pf.getPassword());
 					}
 				if(!password.equals("")){
-				cc = new NewClient(nomeClient,password,false);
+				cc = new Client(nomeClient,password,false);
 				cc.start();
 				
 				AggiornaConnessi ac = new AggiornaConnessi(cc,wordList,words);
@@ -231,7 +231,7 @@ public class MainClient extends JFrame{
 				
 				if(e.getSource() == chatWith){
 					String dest = cc.login();
-					NewClientGUI f = new NewClientGUI(cc,dest);
+					ClientGUI f = new ClientGUI(cc,dest);
 					f.setFont(font);
 					f.setForeground(colore);
 					finestreUtenti.put(dest, f);
@@ -260,7 +260,7 @@ public class MainClient extends JFrame{
 						  pass = new String(pf2.getPassword());
 						}
 					String email = JOptionPane.showInputDialog("Email");
-					cc = new NewClient(user_name,pass,email,true);
+					cc = new Client(user_name,pass,email,true);
 					cc.start();
 					boolean ris = cc.connetti(ip);
 					if(ris){

@@ -16,11 +16,11 @@ public class AggiornaConnessi extends Thread{
 
    private JList<String> lista;
    private Vector<String>utenti;
-   private NewClient cc;
+   private Client cc;
    private volatile LinkedList<String> utentiConnessi;
 
    
-   public AggiornaConnessi(NewClient cc,JList<String> lista,Vector<String> utenti){
+   public AggiornaConnessi(Client cc,JList<String> lista,Vector<String> utenti){
 	   this.lista = lista;
 	   this.utenti = utenti;
 	   this.cc = cc;

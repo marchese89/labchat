@@ -7,8 +7,8 @@ import javax.swing.JTextArea;
 
 public class RicezioneClient extends Thread{
     private JTextArea jt;
-    private NewClient cc;
-	public RicezioneClient(NewClient c,JTextArea jt){
+    private Client cc;
+	public RicezioneClient(Client c,JTextArea jt){
 		this.jt = jt;
 		this.cc = c;
 	}

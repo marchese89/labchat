@@ -18,16 +18,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class ServerGUI extends JFrame{
-	//definizione componenti di rete
-	Server s;
-	//componenti i/o
-	//definizione elementi grafici
-	JButton b;
-	JScrollPane js;
-	JTextArea ricezione;
-	JTextArea invio;
-	JMenuItem connect;
-	//costruttore
+	
+	private Server s;
+	private JButton b;
+	private JScrollPane js;
+	private JTextArea ricezione;
+	private JTextArea invio;
+	
     public ServerGUI(){
     	
     ActionListener al =  new Ascoltatore();
@@ -58,19 +55,9 @@ public class ServerGUI extends JFrame{
 	b = new JButton("Invia");
 	b.addActionListener(al);
 	jp2.add(b);
-	//JPanel unione = new JPanel();
-	//unione.setLayout(new BorderLayout());
 	add(jp,BorderLayout.EAST);
 	add(jp2,BorderLayout.SOUTH);
-	//add(unione,BorderLayout.CENTER);//aggiungiamo il pannello composto
-	
-	
-	
-	
-
-	//add(b,BorderLayout.SOUTH);
-	
-	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setTitle("Chat Server");
     setVisible(true);
 	

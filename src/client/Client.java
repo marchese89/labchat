@@ -19,21 +19,20 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 	public class Client extends Thread{
 
 		private Scanner s;
 		private PrintWriter pr;
-		//private JTextArea jt;
-		boolean connesso = false;
+		private boolean connesso = false;
 		private StringTokenizer st;
 		private Socket client;
-		private LinkedList<String> messaggi;
+		private HashMap<String,LinkedList<String>> messaggi;//chiave: mittente mess...
 		private LinkedList<String> utentiInComunicazione;
 		private volatile LinkedList<String> utentiConnessi;
 		private Lock l;
-		//private JFrame finestraUtente;
 		private HashMap<String,JFrame> finestreUtenti; 
 		private String nomeClient;
 		private String password;
@@ -84,7 +83,7 @@ import javax.swing.JOptionPane;
 	    	this.password = password;
 	    	this.nuovoUtente = nU;
 	    	this.email = email;
-	    	messaggi = new LinkedList<String>();
+	    	messaggi = new HashMap<String,LinkedList<String>>();
 	    	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
@@ -96,7 +95,7 @@ import javax.swing.JOptionPane;
 	    	this.nomeClient = nomeClient;
 	    	this.password = password;
 	    	this.nuovoUtente = nU;
-	    	messaggi = new LinkedList<String>();
+	    	messaggi = new HashMap<String,LinkedList<String>>();
 	    	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
@@ -137,6 +136,16 @@ import javax.swing.JOptionPane;
 						listaContatti.add(st.nextToken());
 					l.unlock();
 					
+				}else if (line.charAt(0)== '<'){
+					st = new StringTokenizer(line,"<");
+					String mitt = st.nextToken();
+					if(messaggi.containsKey(mitt))
+						messaggi.get(mitt).addLast(line);
+					else{
+						messaggi.put(mitt, new LinkedList<String>());
+						messaggi.get(mitt).addLast(line);
+					}
+					
 				}else{
 				st = new StringTokenizer(line,":");
 				String mittente = st.nextToken();
@@ -148,7 +157,12 @@ import javax.swing.JOptionPane;
 				}
 				
 				String msg = st.nextToken();
-				messaggi.addLast(mittente+" ha scritto:\n" + msg+"\n");
+				if(messaggi.containsKey(mittente))
+				messaggi.get(mittente).addLast((mittente+" ha scritto:\n" + msg+"\n"));
+				else{
+					messaggi.put(mittente, new LinkedList<String>());
+					messaggi.get(mittente).addLast(mittente+" ha scritto:\n" + msg+"\n");
+				}
 				if (msg.trim().equals("bye"))
 					done = true;
 				
@@ -162,11 +176,13 @@ import javax.swing.JOptionPane;
 		public void inviaMessaggio(String m){
 			pr.println(m);
 		}
-        public boolean ciSonoMsg(){
-        	return messaggi.size() > 0;
+        public boolean ciSonoMsg(String mitt){
+        	if(messaggi.containsKey(mitt))
+        	return messaggi.get(mitt).size() > 0;
+        	else return false;
         }
-	    public String riceviMsg(){
-	    	return messaggi.removeFirst();
+	    public String riceviMsg(String mitt){//riceviamo messaggi dal mittente selezionato
+	    	return messaggi.get(mitt).removeFirst();
 	    }
 	    
 		public boolean eConnesso(){
@@ -208,6 +224,10 @@ import javax.swing.JOptionPane;
 				finestreUtenti.get(i).setForeground(c);
 			}
 		}
+		public String getNomeClient(){
+			return nomeClient;
+		}
+		
 
 	}
 

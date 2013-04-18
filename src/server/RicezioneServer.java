@@ -67,6 +67,22 @@ public class RicezioneServer extends Thread {
 							clients.remove(j);
 							//System.out.println("l'utente "+j+" si è disconnesso");
 							break;
+						}else if (messaggio.charAt(0)=='<'){//visualizzato alle...
+							st = new StringTokenizer(messaggio,"<");
+                            st.nextToken();//rimuoviamo il mittente
+							st.nextToken();//rimuoviamo l'ora
+							String destinatario = st.nextToken();
+							if(clients.containsKey(destinatario)){
+								clients.get(destinatario).inviaMsg(messaggio);
+								System.out.println
+								("inviato mess "+messaggio+" al client "+destinatario);
+								}else{//il client è offline
+									if(!messaggiOffline.containsKey(destinatario))
+									messaggiOffline.put(destinatario, new LinkedList<String>());
+									messaggiOffline.get(destinatario).addLast(messaggio);
+									System.out.println
+									("inviato mess "+messaggio+" al client "+destinatario);
+								}
 						}else if(messaggio.charAt(0)=='A'){//messaggio addUser
 							   
 						       st = new StringTokenizer(messaggio,":");

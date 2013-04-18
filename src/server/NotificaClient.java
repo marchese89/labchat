@@ -21,7 +21,7 @@ public class NotificaClient extends Thread{
 	private Lock l;
 	private HashMap<String, GestoreClient> clients;
 	private StringBuilder sb;
-	Set<String> s;//set con tutti i client
+	private Set<String> s;//set con tutti i client
 	private Set<String> st;//set con tutti i client meno 1
 	private Connection c;
 	private PreparedStatement ps;

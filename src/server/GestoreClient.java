@@ -27,6 +27,7 @@ public class GestoreClient extends Thread {
     private boolean nomeClientPronto;
     private boolean emailPronta;
     private boolean utenteNuovo;
+    
 	public GestoreClient(Socket i) {
 		incoming = i;
 		nomeClientPronto = false;

@@ -10,11 +10,9 @@ import java.awt.LayoutManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
@@ -24,7 +22,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -35,6 +32,7 @@ import javax.swing.border.Border;
 import javax.swing.text.Keymap;
 
 
+@SuppressWarnings("serial")
 public class ClientGUI extends JFrame{
 
 	private JButton b;
@@ -48,9 +46,11 @@ public class ClientGUI extends JFrame{
     private Focus f;
     private StringTokenizer st;
     private JLabel statusLabel;
+    private boolean fantasma;
     
-	public ClientGUI(Client cc,String destinatario) {
+	public ClientGUI(Client cc,String destinatario,boolean ghost) {
         
+		fantasma = ghost;//diciamo se la finestra è solo fittizia...
 		this.destinatario = destinatario;
 	    this.cc = cc;
 	    f = new Focus();
@@ -126,17 +126,25 @@ public class ClientGUI extends JFrame{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if(!fantasma){
 			if (e.getSource() == b) {
 				  if(!invio.getText().equals("")){
 		          cc.inviaMessaggio(destinatario + ":" + invio.getText());
 			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
 				  invio.setText("");
+				  statusLabel.setText("");
 				  }
 			}
 
-		
+			}else{
+				if(!invio.getText().equals("")){
+				   ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+				   invio.setText("");
+				   statusLabel.setText("");
+				}
+			}
 
-		}
+		}//actionPerformed
 
 	}//classe
 	
@@ -162,13 +170,22 @@ public class ClientGUI extends JFrame{
 	}//classe
 	private class SendAction extends AbstractAction{
 	    public void actionPerformed (ActionEvent e){
+	    	if(!fantasma){
 	    	if(!invio.getText().equals("")){
 		          cc.inviaMessaggio(destinatario + ":" + invio.getText());
 			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
 				  invio.setText("");
+				  statusLabel.setText("");
+	    	}
+		    }else{
+					  if(!invio.getText().equals("")){
+					  ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+					  invio.setText("");
+					  statusLabel.setText("");
+					  }
 				  }
-	    }
-	}
+	    }//metodo
+	}//classe
 
-
+	
 }

@@ -18,7 +18,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -30,17 +34,13 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 
+@SuppressWarnings("all")
 public class MainClient extends JFrame{
 	
-	private JMenuItem connect;
-	private JMenuItem chatWith;
-	private JMenuItem disconnect;
-	private JMenuItem datiDimenticati;
-	private JMenuItem iscriviti;
-	private JMenuItem aggiungiContatto;
-	private JMenuItem rimuoviContatto;
-	private JMenuItem listaContatti;
-	private JMenuItem stileTesto;
+	private JMenuItem connect,chatWith,disconnect,datiDimenticati,iscriviti,
+	                  aggiungiContatto,rimuoviContatto,listaContatti,stileTesto,
+	                  bloccaContatto,sbloccaContatto;
+
 	private ActionListener al;
 	private WindowListener wl;
 	private Client cc;
@@ -53,12 +53,18 @@ public class MainClient extends JFrame{
     private String password;
     private Connection conn;
 	private PreparedStatement stat;
-    private LinkedList<String> contatti;
+    private LinkedList<String> contatti;//i contatti che ho nella mia lista contatti
+    private LinkedList<String> utentiCheMiHannoBloccato;
+    private LinkedList<String> utentiCheHoBloccato;
+    private Lock l;//per gestire la concorrenza su utentiCheMiHannoBloccato e su contatti
 	private MainClient mc;
 	private Font font;
 	private Color colore;
 	
 	public MainClient(){
+		
+		l = new ReentrantLock();
+		utentiCheMiHannoBloccato = new LinkedList<String>();
 		
 		this.font =  new Font("Verdana", Font.BOLD, 12);
 		this.colore = Color.BLACK;
@@ -106,6 +112,10 @@ public class MainClient extends JFrame{
 	    listaContatti.setEnabled(false);
 	    stileTesto = new JMenuItem("Stile Testo");
 	    stileTesto.addActionListener(al);
+	    bloccaContatto = new JMenuItem("Blocca Contatto");
+	    bloccaContatto.addActionListener(al);
+	    sbloccaContatto = new JMenuItem("SbloccaContatto");
+	    sbloccaContatto.addActionListener(al);
 		fileMenu.add(connect);
 		fileMenu.add(disconnect);
 		fileMenu.add(chatWith);
@@ -114,6 +124,8 @@ public class MainClient extends JFrame{
 		opzioni.add(listaContatti);
 		opzioni.add(aggiungiContatto);
 		opzioni.add(rimuoviContatto);
+		opzioni.add(bloccaContatto);
+		opzioni.add(sbloccaContatto);
 		personalizza.add(stileTesto);
 		menuBar.add(fileMenu);
 		menuBar.add(aiuto);
@@ -199,7 +211,9 @@ public class MainClient extends JFrame{
 				
 				AggiornaConnessi ac = new AggiornaConnessi(cc,wordList,words);
 				ac.start();
-				
+				//per avere sempre aggiornata la lista dei contatti che ci hanno bloccato
+				NotificaBloccati nb = new NotificaBloccati(cc,utentiCheMiHannoBloccato,l);
+				nb.start();
 				boolean ris = cc.connetti(ip);
 				if(ris){//se tutto ha funzionato
 				abilitaChat();
@@ -231,11 +245,22 @@ public class MainClient extends JFrame{
 				
 				if(e.getSource() == chatWith){
 					String dest = cc.login();
-					ClientGUI f = new ClientGUI(cc,dest);
+					l.lock();//per la linkedList utentiCheMiHannoBloccato
+					if(!utentiCheMiHannoBloccato.contains(dest)){
+						l.unlock();
+					ClientGUI f = new ClientGUI(cc,dest,false);
 					f.setFont(font);
 					f.setForeground(colore);
 					finestreUtenti.put(dest, f);
-					
+					System.out.println("creata finestra vera");
+					}else{
+						l.unlock();
+						//creiamo una finestra che non invia i messaggi
+						ClientGUI f = new ClientGUI(cc,dest,true);
+						f.setFont(font);
+						f.setForeground(colore);
+						finestreUtenti.put(dest, f);
+					}
 				}
 				if(e.getSource() == disconnect){
 					cc.disconnetti();
@@ -272,6 +297,7 @@ public class MainClient extends JFrame{
 				if(e.getSource() == aggiungiContatto){
 					if(cc.eConnesso()){
 					String nomeContatto = JOptionPane.showInputDialog("Nome Contatto");
+					l.lock();//sincronizzazione lista contatti
 					contatti = cc.getListaContatti();
 					if(!contatti.contains(nomeContatto)  && 
 							(!nomeContatto.equals(nomeClient))){
@@ -281,12 +307,20 @@ public class MainClient extends JFrame{
 						JOptionPane.showMessageDialog
 						(null, null, "Contatto già presente", JOptionPane.ERROR_MESSAGE);
 					}
+					l.unlock();
 					}//se è connesso
 				}
 				if(e.getSource() == listaContatti){
-			
+			        l.lock();
 					contatti = cc.getListaContatti();
-					JFrame pC = new PannelloContatti(contatti);
+					cc.getLockListaContatti().lock();
+					LinkedList<String> utentiBloccati = 
+							new LinkedList<String>(cc.getUtentiBloccati());
+					System.out.println("lista Contatti: "+contatti);
+					System.out.println("utenti bloccati: "+utentiBloccati);
+					cc.getLockListaContatti().unlock();
+					JFrame pC = new PannelloContatti(contatti,utentiBloccati);
+					l.unlock();
 				}
 				if(e.getSource() == rimuoviContatto){
 					String toRemove = JOptionPane.showInputDialog
@@ -296,6 +330,44 @@ public class MainClient extends JFrame{
 				}
 				if(e.getSource() == stileTesto){
 					PannelloFont pf = new PannelloFont(mc);
+				}
+				
+				if( e.getSource() == bloccaContatto){
+					String target = JOptionPane.showInputDialog("Contatto da Bloccare");
+					l.lock();
+					cc.getLockListaContatti().lock();
+					contatti = cc.getListaContatti();
+					LinkedList<String> listaContatti = new LinkedList<String>();
+					StringTokenizer st;
+					for (String i:contatti){
+						st = new StringTokenizer(i," ");
+						listaContatti.add(st.nextToken());
+					}
+					utentiCheHoBloccato = cc.getUtentiBloccati();
+					if(utentiCheHoBloccato.contains(target))
+						JOptionPane.showMessageDialog(null, "Utente già Bloccato");
+					else if(listaContatti.contains(target)){
+						cc.inviaMessaggio("L"+target);//richiesta blocco contatto
+						JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+					}else
+						JOptionPane.showMessageDialog
+						(null, "Contatto non presente nella Lita Contatti");
+					cc.getLockListaContatti().unlock();
+				    l.unlock();
+				}
+				if(e.getSource() == sbloccaContatto){
+					String target = JOptionPane.showInputDialog("Contatto da Sbloccare");
+					l.lock();
+					cc.getLockListaContatti().lock();
+					utentiCheHoBloccato = cc.getUtentiBloccati();
+					if(!utentiCheHoBloccato.contains(target))
+						JOptionPane.showMessageDialog(null, "Non Hai Bloccato il contatto");
+					else{
+						cc.inviaMessaggio("U"+target);
+						JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+					}
+					cc.getLockListaContatti().unlock();
+					l.unlock();
 				}
 			
 		}//actionPerformed

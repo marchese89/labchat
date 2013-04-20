@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 /**
  * 
  * @author giovanni
@@ -25,7 +24,8 @@ public class NotificaClient extends Thread{
 	private Set<String> st;//set con tutti i client meno 1
 	private Connection c;
 	private PreparedStatement ps;
-	private LinkedList<String> utentiAmici;
+	private PreparedStatement utentiBloccati;
+	private LinkedList<String> utentiAmici,lockedUsers;
 	
 	public NotificaClient(HashMap<String, GestoreClient> clients,Lock l,Connection c){
 		this.clients = clients;
@@ -38,7 +38,11 @@ public class NotificaClient extends Thread{
 			
 			try {
 				ps = c.prepareStatement
-						("SELECT * FROM utenti_amici WHERE utente1 = ?;");
+						("SELECT * FROM utenti_amici WHERE utente1 = ?;");//otteniamo la lista degli amici di utente1
+				utentiBloccati = c.prepareStatement
+						("SELECT utente1 FROM utenti_amici WHERE utente2 = ? AND " +
+						  "bloccato_da = 1;");
+				
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
@@ -50,14 +54,16 @@ public class NotificaClient extends Thread{
 				st.remove(i);
 				//inserico nella linked list gli amici di uno specifico utente
 				utentiAmici = new LinkedList<String>();
+				
 				try {
 					ps.setString(1, i);
-					ResultSet result = ps.executeQuery();
+					ResultSet result = ps.executeQuery();//tutti i contatti (on line e non)
 					
 					while (result.next()) {
 						utentiAmici.addLast(result.getString(2));
 						
 					}
+					
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -65,7 +71,7 @@ public class NotificaClient extends Thread{
 				boolean almeno_uno = false;
 				for(String j: st){
 					if(utentiAmici.contains(j)){//inseriamo un utente se presente nella lista
-					sb.append("*"+j);
+					sb.append("*"+j);//notifichiamo agli utenti connessi i propri contatti on line...
 					almeno_uno = true;
 					}
 				}
@@ -74,7 +80,7 @@ public class NotificaClient extends Thread{
 				else
 					clients.get(i).inviaMsg("* ");//lista amici vuota
 				
-				
+
 			}//per ogni client nel set
 			}//se ci sono client
 			if(clients.size() == 1){//se prima c'erano 2 client e uno si disconnette...
@@ -83,17 +89,38 @@ public class NotificaClient extends Thread{
 				clients.get(i).inviaMsg("* ");
 			}
 			//inviamo la lista dei contatti (interroghiamo prima il DB)
-			
+			//inviamo anche la lista degli utenti che ogni utente ha bloccato
 			s = clients.keySet();
 			for (String i:s){
 				utentiAmici = new LinkedList<String>();
+				lockedUsers = new LinkedList<String>();
 				try {
 					ps.setString(1, i);
 					ResultSet result = ps.executeQuery();
-					
+					utentiBloccati.setString(1, i);
+					ResultSet userLocked = utentiBloccati.executeQuery();
+					//aggiorniamo la lista degli utenti amci con la notifica di blocco
 					while (result.next()) {
-						utentiAmici.addLast(result.getString(2));
-						
+						int bloccato_da = result.getInt(3);
+						if(bloccato_da ==0)//notifichiamo al client se è stato bloccato
+						utentiAmici.addLast(result.getString(2)+" f");//non bloccato	
+						else
+							utentiAmici.addLast(result.getString(2)+" t");//bloccato
+					}
+					//aggiorniamo la lista degli utenti bloccati dal singolo utente
+					while(userLocked.next()){
+						lockedUsers.addLast(userLocked.getString(1));
+					}
+					//inviamo all'utente i la lista dei contatti che ha bloccato
+					if(lockedUsers.size()>0){
+					sb = new StringBuilder();
+					for(String u: lockedUsers){
+						sb.append("L"+u);
+					}
+					clients.get(i).inviaMsg(sb.toString());
+					}else{
+					//se sblocco l'ultimo contatto mentre sono on line ricevo la notifica
+						clients.get(i).inviaMsg("L ");
 					}
 				} catch (SQLException e) {
 					e.printStackTrace();

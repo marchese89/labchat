@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Set;
@@ -19,7 +18,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 	public class Client extends Thread{
@@ -31,6 +29,7 @@ import javax.swing.JOptionPane;
 		private Socket client;
 		private HashMap<String,LinkedList<String>> messaggi;//chiave: mittente mess...
 		private LinkedList<String> utentiInComunicazione;
+		private LinkedList<String> utentiCheHoBloccato;
 		private volatile LinkedList<String> utentiConnessi;
 		private Lock l;
 		private HashMap<String,JFrame> finestreUtenti; 
@@ -88,6 +87,7 @@ import javax.swing.JOptionPane;
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
 	    	this.listaContatti = new LinkedList<String>();
+	    	utentiCheHoBloccato = new LinkedList<String>();
 	    	finestreUtenti = new HashMap<String,JFrame>();
 	    }
 	    public Client(String nomeClient,String password,boolean nU){
@@ -100,6 +100,7 @@ import javax.swing.JOptionPane;
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
 	    	this.listaContatti = new LinkedList<String>();
+	    	utentiCheHoBloccato = new LinkedList<String>();
 	    	finestreUtenti = new HashMap<String,JFrame>();
 	    }
 		@Override
@@ -119,6 +120,14 @@ import javax.swing.JOptionPane;
 						utentiConnessi.addLast(st.nextToken());
 					    
 					l.unlock();
+				}else if(line.charAt(0)=='L'){//lista dei contatti che ho bloccato
+					st = new StringTokenizer(line,"L");
+					l.lock();
+					utentiCheHoBloccato.clear();
+					while(st.hasMoreTokens())
+				         utentiCheHoBloccato.addLast(st.nextToken());
+					l.unlock();
+					
 				}else if(line.charAt(0)=='?'){//messaggio aggiunta contatto
 					st = new StringTokenizer(line,"?");
 			        String mitt = st.nextToken();
@@ -128,7 +137,7 @@ import javax.swing.JOptionPane;
 						inviaMessaggio("["+nomeClient+"["+mitt);//conferma richiesta
 					}
 					
-				}else if(line.charAt(0)=='['){
+				}else if(line.charAt(0)=='['){//messaggio lista contatti con blocchi e non
 					l.lock();
 					listaContatti.clear();
 					st = new StringTokenizer(line, "[");
@@ -152,7 +161,7 @@ import javax.swing.JOptionPane;
 				if(!utentiInComunicazione.contains(mittente)){
 					utentiInComunicazione.addLast(mittente);
 					
-				    JFrame f = new ClientGUI(this,mittente);
+				    JFrame f = new ClientGUI(this,mittente,false);
 				    finestreUtenti.put(mittente, f);
 				}
 				
@@ -208,8 +217,9 @@ import javax.swing.JOptionPane;
 			pr.println("disconnect");
 			connesso = false;
 		}
-		public LinkedList<String> getListaContatti(){
-			return listaContatti;
+		public synchronized LinkedList<String> getListaContatti(){
+			    return listaContatti;
+
 		}
 		
 		public void setFont(Font f){
@@ -226,6 +236,12 @@ import javax.swing.JOptionPane;
 		}
 		public String getNomeClient(){
 			return nomeClient;
+		}
+		public Lock getLockListaContatti(){
+			return l;
+		}
+		public LinkedList<String> getUtentiBloccati(){
+			return utentiCheHoBloccato;
 		}
 		
 

@@ -16,8 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JTextArea;
 
+@SuppressWarnings("serial")
 public class PannelloFont extends JFrame {
 	private JComboBox<String> selettoreFont;
 	private JComboBox<String> selettoreColore;

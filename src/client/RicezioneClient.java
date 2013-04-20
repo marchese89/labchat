@@ -30,9 +30,10 @@ public class RicezioneClient extends Thread{
     				st.nextToken();//rimuoviamo il mittente
     				status.setText("Visualizzato alle "+st.nextToken());
     				status.repaint();
-    			}else
+    			}else{
     			jt.append(m);
-    		
+    			status.setText("");
+    			}
     		}
     	}
 	}

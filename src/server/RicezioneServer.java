@@ -26,9 +26,9 @@ public class RicezioneServer extends Thread {
 	private Lock l;
 	private HashMap<String,LinkedList<String>> messaggiOffline;
 	private Connection conn;
-	private PreparedStatement statement;
-	private PreparedStatement statementInsert;
-	private PreparedStatement removeStatement;
+	private PreparedStatement statement,statementInsert,removeStatement,
+	                          lockStatement,unlockStatement;
+
 	
 	public RicezioneServer(HashMap<String, GestoreClient> clients,
 			HashMap<String,LinkedList<String>> messaggiOffline,
@@ -46,9 +46,14 @@ public class RicezioneServer extends Thread {
 		try {
 			statement = conn
 					.prepareStatement("SELECT * FROM utentiregistrati WHERE username = ?;");
-			statementInsert = conn.prepareStatement("INSERT INTO utenti_amici VALUES(?,?)");
+			statementInsert = conn.prepareStatement("INSERT INTO utenti_amici VALUES(?,?);");
 			removeStatement = conn.prepareStatement
-					("DELETE FROM utenti_amici WHERE utente1=? AND utente2 =?");
+					("DELETE FROM utenti_amici WHERE utente1=? AND utente2 =?;");
+			lockStatement = conn.prepareStatement
+					("UPDATE utenti_amici SET bloccato_da = 1 WHERE utente1 = ? AND utente2 = ?;");
+			unlockStatement = conn.prepareStatement
+					("UPDATE utenti_amici SET bloccato_da = 0 WHERE utente1 = ? AND utente2 = ?;");
+					
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -67,6 +72,26 @@ public class RicezioneServer extends Thread {
 							clients.remove(j);
 							//System.out.println("l'utente "+j+" si è disconnesso");
 							break;
+						}else if(messaggio.charAt(0)=='U'){
+							st = new  StringTokenizer(messaggio,"U");
+							String toUnlock = st.nextToken();
+							try{
+								unlockStatement.setString(1, toUnlock);//utente da sbloccare
+								unlockStatement.setString(2, j);//utente che sblocca
+								unlockStatement.execute();
+							}catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}else if(messaggio.charAt(0)=='L'){
+							st = new  StringTokenizer(messaggio,"L");
+							String toLock = st.nextToken();
+							try {
+								lockStatement.setString(1, toLock);//utente da bloccare
+								lockStatement.setString(2, j);//utente che blocca
+								lockStatement.execute();
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
 						}else if (messaggio.charAt(0)=='<'){//visualizzato alle...
 							st = new StringTokenizer(messaggio,"<");
                             st.nextToken();//rimuoviamo il mittente
@@ -74,14 +99,10 @@ public class RicezioneServer extends Thread {
 							String destinatario = st.nextToken();
 							if(clients.containsKey(destinatario)){
 								clients.get(destinatario).inviaMsg(messaggio);
-								System.out.println
-								("inviato mess "+messaggio+" al client "+destinatario);
 								}else{//il client è offline
 									if(!messaggiOffline.containsKey(destinatario))
 									messaggiOffline.put(destinatario, new LinkedList<String>());
 									messaggiOffline.get(destinatario).addLast(messaggio);
-									System.out.println
-									("inviato mess "+messaggio+" al client "+destinatario);
 								}
 						}else if(messaggio.charAt(0)=='A'){//messaggio addUser
 							   

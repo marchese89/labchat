@@ -1,9 +1,6 @@
 package server;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
@@ -11,10 +8,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -27,7 +22,7 @@ public class Server implements Runnable {
 	private JTextArea jt;
 	private HashMap<String, GestoreClient> clients;
 	private Lock l;
-	private Statement stat;
+	//private Statement stat;
 	private Connection conn;
 	private HashMap<String, LinkedList<String>> messaggiOffline;
 

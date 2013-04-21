@@ -46,7 +46,7 @@ public class RicezioneServer extends Thread {
 		try {
 			statement = conn
 					.prepareStatement("SELECT * FROM utentiregistrati WHERE username = ?;");
-			statementInsert = conn.prepareStatement("INSERT INTO utenti_amici VALUES(?,?);");
+			statementInsert = conn.prepareStatement("INSERT INTO utenti_amici VALUES(?,?,?);");
 			removeStatement = conn.prepareStatement
 					("DELETE FROM utenti_amici WHERE utente1=? AND utente2 =?;");
 			lockStatement = conn.prepareStatement
@@ -138,6 +138,7 @@ public class RicezioneServer extends Thread {
 							String utente2 = st.nextToken();
 							try {
 								//inseriamo nel DB le 2 possibili coppie
+								statementInsert.setInt(3,0);
 								statementInsert.setString(1, utente1);
 								statementInsert.setString(2, utente2);
 								statementInsert.execute();
@@ -164,8 +165,8 @@ public class RicezioneServer extends Thread {
 							}catch(SQLException e){
 								e.printStackTrace();
 							}
-						}else{
-						st = new StringTokenizer(messaggio,":");
+						}else if (messaggio.charAt(0)=='M'){
+						st = new StringTokenizer(messaggio,"M:");
 						String dest = st.nextToken();
 						String msg = st.nextToken();
 						

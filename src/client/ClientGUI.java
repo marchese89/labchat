@@ -129,7 +129,7 @@ public class ClientGUI extends JFrame{
 			if(!fantasma){
 			if (e.getSource() == b) {
 				  if(!invio.getText().equals("")){
-		          cc.inviaMessaggio(destinatario + ":" + invio.getText());
+		          cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
 			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
 				  invio.setText("");
 				  statusLabel.setText("");
@@ -172,7 +172,7 @@ public class ClientGUI extends JFrame{
 	    public void actionPerformed (ActionEvent e){
 	    	if(!fantasma){
 	    	if(!invio.getText().equals("")){
-		          cc.inviaMessaggio(destinatario + ":" + invio.getText());
+		          cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
 			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
 				  invio.setText("");
 				  statusLabel.setText("");

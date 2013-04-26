@@ -27,7 +27,7 @@ public class RicezioneServer extends Thread {
 	private HashMap<String,LinkedList<String>> messaggiOffline;
 	private Connection conn;
 	private PreparedStatement statement,statementInsert,removeStatement,
-	                          lockStatement,unlockStatement;
+	                          lockStatement,unlockStatement, forgetStatement;
 
 	
 	public RicezioneServer(HashMap<String, GestoreClient> clients,
@@ -53,13 +53,13 @@ public class RicezioneServer extends Thread {
 					("UPDATE utenti_amici SET bloccato_da = 1 WHERE utente1 = ? AND utente2 = ?;");
 			unlockStatement = conn.prepareStatement
 					("UPDATE utenti_amici SET bloccato_da = 0 WHERE utente1 = ? AND utente2 = ?;");
+			
 					
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
 		while (true) {
-			//System.out.println("11");
 			l.lock();
 			chiavi = clients.keySet();
 			if (chiavi.size() > 0)
@@ -73,7 +73,8 @@ public class RicezioneServer extends Thread {
 							clients.remove(j);
 							//System.out.println("l'utente "+j+" si è disconnesso");
 							break;
-						}else if(messaggio.charAt(0)=='U'){
+						}
+						else if(messaggio.charAt(0)=='U'){
 							st = new  StringTokenizer(messaggio,"U");
 							String toUnlock = st.nextToken();
 							try{

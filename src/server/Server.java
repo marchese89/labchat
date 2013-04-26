@@ -15,6 +15,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JTextArea;
 
+import Utility.Send;
+
 public class Server implements Runnable {
 
 	private ServerSocket s;
@@ -56,6 +58,7 @@ public class Server implements Runnable {
 		notifica.start();
 		
 		while (true) {
+			boolean restorePw = false;
 			Socket incoming;
 			try {
 				System.out.println("Entro nel while true del Server");
@@ -64,10 +67,35 @@ public class Server implements Runnable {
 				t.start();
 				l.lock();
 				while (!t.nomeClientPronto()) {
-					System.out.println("While 1");
+					System.out.println("While 1 : Server.java");
 				}
-				while (!t.passwordPronta()) {
-					System.out.println("While 2");
+				if (t.forgetPassword()){
+					restorePw = true;
+					String name = t.getNomeClient();
+					String email = t.getEmail();
+					String newPass = Utility.RandomPassword.newRandomPassword(8) ;
+					String sha1Pass = Utility.Security.cryptPassword(newPass);
+					int res = 0;
+					try {
+						PreparedStatement forgetStatement =conn.prepareStatement ("UPDATE utentiregistrati SET pass = ? WHERE username = ? AND email = ?;");
+						forgetStatement.setString(1, sha1Pass);
+						forgetStatement.setString(2, name);
+						forgetStatement.setString(3, email);
+						System.out.println(forgetStatement.toString());
+						res = forgetStatement.executeUpdate();
+					}
+					catch (Exception e){}
+					if (res>0) {
+						Send.send("bruno.scrivo@gmail.com", email , "La tua nuova password è: " + newPass);
+						t.inviaMsg("correctsend");
+					}
+					else {
+						t.inviaMsg("failedsend");
+					}
+				}
+				while (!t.passwordPronta() && !restorePw) {
+					System.out.println("While 2 : Server.java");
+					restorePw = false;
 				}
 				if (!t.eNuovo()) {
 					System.out.println("non è un utente nuovo");
@@ -101,6 +129,9 @@ public class Server implements Runnable {
 				l.unlock();
 
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
@@ -26,7 +27,8 @@ public class GestoreClient extends Thread {
 	private boolean passwordPronta;
     private boolean nomeClientPronto;
     private boolean emailPronta;
-    private boolean utenteNuovo;
+    private boolean utenteNuovo, forgetPassword;
+  
     
 	public GestoreClient(Socket i) {
 		incoming = i;
@@ -34,6 +36,7 @@ public class GestoreClient extends Thread {
 		passwordPronta = false;
 		emailPronta = false;
 		utenteNuovo = false;
+		forgetPassword = false;
 		msg = new LinkedList<String>();
 	}
 
@@ -49,7 +52,6 @@ public class GestoreClient extends Thread {
 				out = new PrintWriter(outStream, true);
 
 				while (true) {
-					System.out.println("7");
 					if (in.hasNextLine()) {
 						String s = in.nextLine();
 						System.out.println(s);
@@ -64,7 +66,17 @@ public class GestoreClient extends Thread {
 							emailPronta = true;
 				
 							
-						}else if (s.charAt(0) == '{') {//stiamo per leggere il nome del client
+						}
+						else if(s.charAt(0)=='§'){
+							System.out.println("Entro qasd");
+							StringTokenizer q = new StringTokenizer(s.substring(1,s.length()),":");
+							this.nomeClient = q.nextToken();
+							this.email = q.nextToken();
+							forgetPassword = true;
+							emailPronta = true;
+							nomeClientPronto = true;
+						}
+						else if (s.charAt(0) == '{') {//stiamo per leggere il nome del client
 							StringTokenizer st = new StringTokenizer(s, "{");
 							nomeClient = st.nextToken();
 							nomeClientPronto = true;
@@ -111,6 +123,10 @@ public class GestoreClient extends Thread {
 	public boolean nomeClientPronto(){
 		return nomeClientPronto;
 	}
+	
+	public boolean forgetPassword() {
+		return forgetPassword;
+	}
 	public boolean passwordPronta(){
 		return passwordPronta;
 	}
@@ -120,6 +136,7 @@ public class GestoreClient extends Thread {
 	public String getPassword(){
 		return password;
 	}
+	
 	public boolean emailPronta(){
 		return emailPronta;
 	}

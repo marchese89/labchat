@@ -285,6 +285,21 @@ public class MainClient extends JFrame {
 				String dest = cc.login();
 				chattaWith(dest);
 			}
+			
+			if (e.getSource() == datiDimenticati) {
+				
+				String user = JOptionPane.showInputDialog("Inserisci il tuo nome utente");
+				String email =  JOptionPane.showInputDialog("Inserisci la tua mail");
+				cc = new Client (user, email);
+				boolean ris = cc.forgetPassword();
+				if (ris) {
+					JOptionPane.showMessageDialog(null,"La tua password è stata reimpostata e inviata al tuo indirizzo email");
+				}
+				else {
+					JOptionPane.showMessageDialog(null, null,
+							"Dati non corretti", JOptionPane.ERROR_MESSAGE);
+				}
+			}
 			if (e.getSource() == disconnect) {
 				cc.disconnetti();
 				chatWith.setEnabled(false);

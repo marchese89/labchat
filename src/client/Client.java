@@ -39,17 +39,41 @@ import javax.swing.JOptionPane;
 		private boolean nuovoUtente;
 		private LinkedList<String> listaContatti;
 		
+		private void restorerConnection (String ip) {
+			try {
+			client = new Socket(ip, 8189);
+    		InputStream is = new DataInputStream(client.getInputStream());
+    		OutputStream os = new DataOutputStream(client.getOutputStream());
+    		s = new Scanner(is);
+    		pr = new PrintWriter(os, true);
+			}
+			catch (Exception e) { }
+		}
+		
+		public boolean forgetPassword(){
+			boolean res = false;
+			restorerConnection ("127.0.0.1"); // da modificare
+			pr.println("§"+":"+nomeClient+":"+email);
+			boolean end = false;
+    		while(!end && s.hasNextLine()){
+    			String result = s.nextLine();
+    			if(result.equals("correctsend")){
+    				end = true;
+    			    res = true;
+    			}
+    			if(result.equals("failedsend")){
+    				end = true;
+    				res = false;
+    			}
+    				
+    		}
+			return res;
+		}
+		
 		public boolean connetti(String ip){
+			restorerConnection (ip);
 			boolean risultato = false;
 			try{
-				//instauriamo una connessione con il server ed estraiamo
-				//gli strumenti per inviare e ricevere testo
-	    		client = new Socket(ip, 8189);
-	    		InputStream is = new DataInputStream(client.getInputStream());
-	    		OutputStream os = new DataOutputStream(client.getOutputStream());
-	    		s = new Scanner(is);
-	    		pr = new PrintWriter(os, true);
-	    		
 	    		if(nuovoUtente){//se ci stiamo registrando inviamo un mess speciale
 	    			pr.println("N"+":"+nomeClient+":"+password+":"+email);
 	    			risultato = true;
@@ -71,12 +95,16 @@ import javax.swing.JOptionPane;
 	    				
 	    		}
 	    		}
-	    		}catch(IOException e){
+	    		}catch(Exception e){
 	    			e.printStackTrace();
 	    		}
 			
 			return risultato;
 		}//connetti
+		public Client (String nomeClient, String email) {
+			this.nomeClient = nomeClient;
+			this.email = email;
+		}
 	    public Client(String nomeClient,String password,String email,boolean nU){
 	    	
 	    	this.nomeClient = nomeClient;

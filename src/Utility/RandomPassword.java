@@ -3,7 +3,7 @@ package Utility;
 import java.util.Random;
 
 public class RandomPassword {
-	static final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	static final String ALPHABET = "0123456789ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 	static Random rnd = new Random(System.currentTimeMillis());
 
 	public static String newRandomPassword(int lenght) {

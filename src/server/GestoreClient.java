@@ -68,7 +68,6 @@ public class GestoreClient extends Thread {
 							
 						}
 						else if(s.charAt(0)=='§'){
-							System.out.println("Entro qasd");
 							StringTokenizer q = new StringTokenizer(s.substring(1,s.length()),":");
 							this.nomeClient = q.nextToken();
 							this.email = q.nextToken();

@@ -50,20 +50,22 @@ import javax.swing.JOptionPane;
 			catch (Exception e) { }
 		}
 		
-		public boolean forgetPassword(){
-			boolean res = false;
-			restorerConnection ("127.0.0.1"); // da modificare
+		public String forgetPassword(String ip){
+			String res = null;
+			restorerConnection (ip); // da modificare
 			pr.println("§"+":"+nomeClient+":"+email);
 			boolean end = false;
     		while(!end && s.hasNextLine()){
     			String result = s.nextLine();
-    			if(result.equals("correctsend")){
+    			if (result.indexOf("correctsend")>= 0 ) {
+    				StringTokenizer st = new StringTokenizer(result,":");
+    				st.nextToken();
     				end = true;
-    			    res = true;
+    			    res = new String(st.nextToken());
     			}
-    			if(result.equals("failedsend")){
+    			else{
     				end = true;
-    				res = false;
+    				res = null;
     			}
     				
     		}

@@ -287,13 +287,13 @@ public class MainClient extends JFrame {
 			}
 			
 			if (e.getSource() == datiDimenticati) {
-				
+				String ip = JOptionPane.showInputDialog("Inserisci indirizzo");
 				String user = JOptionPane.showInputDialog("Inserisci il tuo nome utente");
 				String email =  JOptionPane.showInputDialog("Inserisci la tua mail");
 				cc = new Client (user, email);
-				boolean ris = cc.forgetPassword();
-				if (ris) {
-					JOptionPane.showMessageDialog(null,"La tua password è stata reimpostata e inviata al tuo indirizzo email");
+				String ris = cc.forgetPassword(ip);
+				if (ris!=null) {
+					JOptionPane.showMessageDialog(null,"La tua password è stata reimpostata e inviata al tuo indirizzo email ed è: " + ris);
 				}
 				else {
 					JOptionPane.showMessageDialog(null, null,

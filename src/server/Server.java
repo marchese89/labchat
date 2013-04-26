@@ -86,8 +86,11 @@ public class Server implements Runnable {
 					}
 					catch (Exception e){}
 					if (res>0) {
-						Send.send("bruno.scrivo@gmail.com", email , "La tua nuova password è: " + newPass);
-						t.inviaMsg("correctsend");
+						t.inviaMsg("correctsend:" + newPass);
+						try {
+						Send.send("prolagd@gmail.com", email , "La tua nuova password è: " + newPass);
+						}
+						catch (Exception e){}
 					}
 					else {
 						t.inviaMsg("failedsend");

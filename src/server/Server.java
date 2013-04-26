@@ -55,20 +55,22 @@ public class Server implements Runnable {
 		Thread notifica = new NotificaClient(clients, l,conn);
 		notifica.start();
 		
-		
 		while (true) {
 			Socket incoming;
 			try {
+				System.out.println("Entro nel while true del Server");
 				incoming = s.accept();
 				t = new GestoreClient(incoming);
 				t.start();
 				l.lock();
 				while (!t.nomeClientPronto()) {
+					System.out.println("While 1");
 				}
 				while (!t.passwordPronta()) {
+					System.out.println("While 2");
 				}
-
 				if (!t.eNuovo()) {
+					System.out.println("non è un utente nuovo");
 					boolean pwBuona = verificaPass();
 					if (pwBuona) {
 						clients.put(t.getNomeClient(), t);
@@ -79,15 +81,20 @@ public class Server implements Runnable {
 						if (messaggiOffline.containsKey(t.getNomeClient())) {
 							LinkedList<String> ll = messaggiOffline.get(t
 									.getNomeClient());
-							while (ll.size() > 0)
+							while (ll.size() > 0){
+								//System.out.println("4");
 								t.inviaMsg(ll.removeFirst());
+								System.out.println("inviato mess offline");
+							}
 						}
 					} else
 						t.inviaMsg("failedlogin");
 				}// se è un utente già registrato
 				else {
 					while (!t.emailPronta()) {
+						System.out.println("While 3");
 					}
+					
 					aggiungiUtente(t.getNomeClient(), t.getPassword(),
 							t.getEmail());
 				}
@@ -126,6 +133,7 @@ public class Server implements Runnable {
 			ResultSet result = statement.executeQuery();
 
 			while (result.next()) {
+				System.out.println("6");
 				String password = result.getString(2);
 				if (password.equals(t.getPassword()))
 					pwCorretta = true;
@@ -139,9 +147,9 @@ public class Server implements Runnable {
 	public static Connection getConnection() throws SQLException {
 
 		String drivers = "com.mysql.jdbc.Driver";
-		String url = "jdbc:mysql://localhost:3306/utentichat";//
+		String url = "jdbc:mysql://127.0.0.1:3306/utentichat";//
 		String username = "root";
-		String password = ".jhwh888.";
+		String password = "root";
 
 		System.setProperty("jdbc.drivers", drivers);
 

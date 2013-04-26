@@ -55,6 +55,7 @@ import javax.swing.JOptionPane;
 	    			risultato = true;
 	    		}else{
 	    		pr.println("{"+nomeClient+"{"+password);
+	    		
 	    		boolean done = false;
 	    		while(!done && s.hasNextLine()){
 	    			String result = s.nextLine();
@@ -107,6 +108,7 @@ import javax.swing.JOptionPane;
 		public void run() {
 			//riceviamo di continuo i messaggi dal server
 			while(true){
+				System.out.println("Lato client: " + nomeClient);
 			if(connesso){
 			boolean done = false;
 			while (!done && s.hasNextLine()) {
@@ -129,6 +131,7 @@ import javax.swing.JOptionPane;
 					l.unlock();
 					
 				}else if(line.charAt(0)=='?'){//messaggio aggiunta contatto
+					System.out.println("Aggiunta contatto...");
 					st = new StringTokenizer(line,"?");
 			        String mitt = st.nextToken();
 					int ris =JOptionPane.showConfirmDialog
@@ -178,7 +181,12 @@ import javax.swing.JOptionPane;
 			}//else (mssaggi normali)
 			}// while
 			}
+			try {
+				sleep(1000);
+			}
+			catch (Exception e){}
 			}//while esterno
+			
 		}//run
 		
 		//invia i messaggi al server

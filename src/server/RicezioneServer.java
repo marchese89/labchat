@@ -59,6 +59,7 @@ public class RicezioneServer extends Thread {
 		}
 		
 		while (true) {
+			//System.out.println("11");
 			l.lock();
 			chiavi = clients.keySet();
 			if (chiavi.size() > 0)
@@ -105,25 +106,26 @@ public class RicezioneServer extends Thread {
 									messaggiOffline.get(destinatario).addLast(messaggio);
 								}
 						}else if(messaggio.charAt(0)=='A'){//messaggio addUser
-							   
+							   System.out.println("ricevuto mess addUser");
 						       st = new StringTokenizer(messaggio,":");
 						       st.nextToken();//eliminiamo 'A'
 						       try {
 						    	   //interroghiamo il database
 								statement.setString(1, st.nextToken());
+								System.out.println(statement.toString());
 								ResultSet result = statement.executeQuery();
-								System.out.println("query eseguita");
+								System.out.println("Query eseguita: " );
 								while(result.next()){
 									String user = result.getString(1);
-									//inviamo la richiesta all'utente interessato
 									if(clients.containsKey(user)){
+										System.out.println("L'utente: " + user + " è online e invio la richiesta");
 									clients.get(user).inviaMsg("?"+j);
 									
 									}
 									else{
 										if(!messaggiOffline.containsKey(user))
 										messaggiOffline.put(user, new LinkedList<String>());
-										
+										System.out.println("L'utente: " + user + " non è online e invio la richiesta");
 										messaggiOffline.get(user).addLast("?"+j);
 									}
 										

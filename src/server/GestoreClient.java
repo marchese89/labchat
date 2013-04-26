@@ -49,8 +49,10 @@ public class GestoreClient extends Thread {
 				out = new PrintWriter(outStream, true);
 
 				while (true) {
+					System.out.println("7");
 					if (in.hasNextLine()) {
 						String s = in.nextLine();
+						System.out.println(s);
 						if(s.charAt(0)=='N'){
 							utenteNuovo = true;
 							StringTokenizer st0 = new StringTokenizer(s,"N:");
@@ -68,10 +70,15 @@ public class GestoreClient extends Thread {
 							nomeClientPronto = true;
 							password = st.nextToken();
 							passwordPronta = true;
+							System.out.println("GestoreClient riceve il messaggio");
 						} else {
 							msg.addLast(s);
 						}
 					}
+					try {
+					sleep(1000);
+					}
+					catch (InterruptedException e){}
 				}
 			} finally {
 				incoming.close();

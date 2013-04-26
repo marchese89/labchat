@@ -37,6 +37,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 
+import Utility.Security;
+
 
 @SuppressWarnings("all")
 public class MainClient extends JFrame {
@@ -237,7 +239,7 @@ public class MainClient extends JFrame {
 						password = new String(pf.getPassword());
 					}
 					if (!password.equals("")) {
-						cc = new Client(nomeClient, password, false);
+						cc = new Client(nomeClient, Security.cryptPassword(password), false);
 						cc.start();
 
 						AggiornaConnessi ac = new AggiornaConnessi(cc,
@@ -307,7 +309,7 @@ public class MainClient extends JFrame {
 					pass = new String(pf2.getPassword());
 				}
 				String email = JOptionPane.showInputDialog("Email");
-				cc = new Client(user_name, pass, email, true);
+				cc = new Client(user_name, Security.cryptPassword(pass), email, true);
 				cc.start();
 				boolean ris = cc.connetti(ip);
 				if (ris) {

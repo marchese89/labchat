@@ -129,12 +129,13 @@ public class NotificaClient extends Thread{
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
+				if (utentiAmici.size()>0){
 			sb = new StringBuilder();
 			for(String j:utentiAmici)
 				sb.append("["+j);
 			clients.get(i).inviaMsg(sb.toString());
 			}//per ogni elemento nel KeySet
-			
+			}
 			l.unlock();
 			
 			try {

@@ -39,13 +39,14 @@ import javax.swing.ListModel;
 
 import Utility.Security;
 
-
 @SuppressWarnings("all")
 public class MainClient extends JFrame {
 
 	private JMenuItem connect, chatWith, disconnect, datiDimenticati,
 			iscriviti, aggiungiContatto, rimuoviContatto, listaContatti,
-			stileTesto, bloccaContatto, sbloccaContatto;
+			stileTesto, bloccaContatto, sbloccaContatto,aggiornaLista;
+	private JMenu suspendedRequest;
+	private JMenuItem[] users;
 
 	private ActionListener al;
 	private WindowListener wl;
@@ -62,9 +63,10 @@ public class MainClient extends JFrame {
 	private LinkedList<String> contatti;// i contatti che ho nella mia lista
 										// contatti
 	private LinkedList<String> utentiCheMiHannoBloccato;
-	private LinkedList<String> utentiCheHoBloccato;
+	private LinkedList<String> utentiCheHoBloccato, suspendedUser;
 	private Lock l;// per gestire la concorrenza su utentiCheMiHannoBloccato e
 					// su contatti
+	private JMenu opzioni;
 	private MainClient mc;
 	private Font font;
 	private Color colore;
@@ -95,7 +97,7 @@ public class MainClient extends JFrame {
 		setJMenuBar(menuBar);
 		JMenu fileMenu = new JMenu("File");
 		JMenu aiuto = new JMenu("Aiuto");
-		JMenu opzioni = new JMenu("Opzioni");
+		opzioni = new JMenu("Opzioni");
 		JMenu personalizza = new JMenu("Personalizza");
 		datiDimenticati = new JMenuItem("Dati Dimenticati");
 		datiDimenticati.addActionListener(al);
@@ -111,7 +113,10 @@ public class MainClient extends JFrame {
 		aggiungiContatto.addActionListener(al);
 		aggiungiContatto.setEnabled(false);
 		chatWith.setEnabled(false);// rendo non disponibile il tasto per
-									// chattare
+		// chattare
+		suspendedRequest = new JMenu("Richieste in sospeso ()");
+		opzioni.add(suspendedRequest);
+		suspendedRequest.setEnabled(false);
 		disconnect.setEnabled(false);
 		rimuoviContatto = new JMenuItem("Rimuovi Contatto");
 		rimuoviContatto.addActionListener(al);
@@ -125,6 +130,10 @@ public class MainClient extends JFrame {
 		bloccaContatto.addActionListener(al);
 		sbloccaContatto = new JMenuItem("SbloccaContatto");
 		sbloccaContatto.addActionListener(al);
+		aggiornaLista = new JMenuItem("Aggiorna richieste");
+		opzioni.add(aggiornaLista);
+		aggiornaLista.addActionListener(al);
+		aggiornaLista.setEnabled(false);
 		fileMenu.add(connect);
 		fileMenu.add(disconnect);
 		fileMenu.add(chatWith);
@@ -194,8 +203,8 @@ public class MainClient extends JFrame {
 	public static void main(String[] args) {
 		JFrame f = new MainClient();
 	}
-	
-	public void chattaWith (String dest) {
+
+	public void chattaWith(String dest) {
 		l.lock();// per la linkedList utentiCheMiHannoBloccato
 		if (!utentiCheMiHannoBloccato.contains(dest)) {
 			l.unlock();
@@ -218,7 +227,7 @@ public class MainClient extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (e.getSource()==wordList){
+			if (e.getSource() == wordList) {
 				System.out.println("ciao");
 			}
 
@@ -239,7 +248,8 @@ public class MainClient extends JFrame {
 						password = new String(pf.getPassword());
 					}
 					if (!password.equals("")) {
-						cc = new Client(nomeClient, Security.cryptPassword(password), false);
+						cc = new Client(nomeClient,
+								Security.cryptPassword(password), false);
 						cc.start();
 
 						AggiornaConnessi ac = new AggiornaConnessi(cc,
@@ -252,6 +262,8 @@ public class MainClient extends JFrame {
 						nb.start();
 						boolean ris = cc.connetti(ip);
 						if (ris) {// se tutto ha funzionato
+							suspendedUser = cc.getSuspendedList();
+							initializeSuspendedUser();
 							abilitaChat();
 							disabilitaConnetti();
 							disconnect.setEnabled(true);
@@ -286,16 +298,39 @@ public class MainClient extends JFrame {
 				chattaWith(dest);
 			}
 			
+			if (users!=null) {
+				for (int i = 0; i<users.length; i++) {
+					if (e.getSource()==users[i]) {
+						String mittente = users[i].getText();
+						int ris = JOptionPane.showConfirmDialog
+						(null, "L'utente "+mittente+" vuole aggiungerti come contatto. Accetti?");
+						if(ris == JOptionPane.OK_OPTION){
+							cc.inviaMessaggio("[:Y:"+nomeClient+","+mittente);//conferma richiesta
+							suspendedUser = cc.getSuspendedList();
+							initializeSuspendedUser();
+						}
+						if(ris == JOptionPane.NO_OPTION){
+							cc.inviaMessaggio("[:N:"+nomeClient+","+mittente);//conferma richiesta
+							suspendedUser = cc.getSuspendedList();
+							initializeSuspendedUser();
+						}
+					}
+				}
+			}
+			
 			if (e.getSource() == datiDimenticati) {
 				String ip = JOptionPane.showInputDialog("Inserisci indirizzo");
-				String user = JOptionPane.showInputDialog("Inserisci il tuo nome utente");
-				String email =  JOptionPane.showInputDialog("Inserisci la tua mail");
-				cc = new Client (user, email);
+				String user = JOptionPane
+						.showInputDialog("Inserisci il tuo nome utente");
+				String email = JOptionPane
+						.showInputDialog("Inserisci la tua mail");
+				cc = new Client(user, email);
 				String ris = cc.forgetPassword(ip);
-				if (ris!=null) {
-					JOptionPane.showMessageDialog(null,"La tua password è stata reimpostata e inviata al tuo indirizzo email ed è: " + ris);
-				}
-				else {
+				if (ris != null) {
+					JOptionPane.showMessageDialog(null,
+							"La tua password è stata reimpostata e inviata al tuo indirizzo email ed è: "
+									+ ris);
+				} else {
 					JOptionPane.showMessageDialog(null, null,
 							"Dati non corretti", JOptionPane.ERROR_MESSAGE);
 				}
@@ -324,7 +359,8 @@ public class MainClient extends JFrame {
 					pass = new String(pf2.getPassword());
 				}
 				String email = JOptionPane.showInputDialog("Email");
-				cc = new Client(user_name, Security.cryptPassword(pass), email, true);
+				cc = new Client(user_name, Security.cryptPassword(pass), email,
+						true);
 				cc.start();
 				boolean ris = cc.connetti(ip);
 				if (ris) {
@@ -341,7 +377,7 @@ public class MainClient extends JFrame {
 					contatti = cc.getListaContatti();
 					if (!contatti.contains(nomeContatto)
 							&& (!nomeContatto.equals(nomeClient))) {
-						cc.inviaMessaggio("A:" + nomeContatto);// richiesta
+						cc.inviaMessaggio("A:" + nomeClient +"," + nomeContatto);// richiesta
 																// aggiunta
 																// contatto
 						JOptionPane
@@ -376,7 +412,10 @@ public class MainClient extends JFrame {
 			if (e.getSource() == stileTesto) {
 				PannelloFont pf = new PannelloFont(mc);
 			}
-
+			if (e.getSource() == aggiornaLista) {
+				suspendedUser = cc.getSuspendedList();
+				initializeSuspendedUser();
+			}
 			if (e.getSource() == bloccaContatto) {
 				String target = JOptionPane
 						.showInputDialog("Contatto da Bloccare");
@@ -420,6 +459,24 @@ public class MainClient extends JFrame {
 
 		}// actionPerformed
 
+		private void initializeSuspendedUser() {
+			if (suspendedUser != null) {
+				aggiornaLista.setEnabled(true);
+				opzioni.remove(suspendedRequest);
+				int size = suspendedUser.size();
+				suspendedRequest = new JMenu();
+				suspendedRequest.setEnabled(true);
+				suspendedRequest.setText("Richieste in sospeso (" + size + ")");
+				opzioni.add(suspendedRequest);
+				users = new JMenuItem[size];
+				for (int i = 0; i < users.length; i++) {
+					users[i] = new JMenuItem(suspendedUser.get(i));
+					suspendedRequest.add(users[i]);
+					users[i].addActionListener(al);
+				}
+			}
+		}// initializeSuspendedUser
+
 	}// classe interna
 
 	class AscoltatoreFinestra extends WindowAdapter {
@@ -434,22 +491,24 @@ public class MainClient extends JFrame {
 		}
 
 	}// classe interna
-	class ActionJList extends MouseAdapter{
-		  protected JList list;
-		    
-		  public ActionJList(JList l){
-		   list = l;
-		   }
-		    
-		  public void mouseClicked(MouseEvent e){
-		   if(e.getClickCount() == 2){
-		     int index = list.locationToIndex(e.getPoint());
-		     ListModel dlm = list.getModel();
-		     Object item = dlm.getElementAt(index);;
-		     list.ensureIndexIsVisible(index);
-			 chattaWith((String)item);   
-		     }
-		   }
+
+	class ActionJList extends MouseAdapter {
+		protected JList list;
+
+		public ActionJList(JList l) {
+			list = l;
 		}
+
+		public void mouseClicked(MouseEvent e) {
+			if (e.getClickCount() == 2) {
+				int index = list.locationToIndex(e.getPoint());
+				ListModel dlm = list.getModel();
+				Object item = dlm.getElementAt(index);
+				;
+				list.ensureIndexIsVisible(index);
+				chattaWith((String) item);
+			}
+		}
+	}
 
 }

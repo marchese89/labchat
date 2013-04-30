@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.sql.ResultSet;
+import java.sql.Connection;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
@@ -28,9 +28,11 @@ public class GestoreClient extends Thread {
     private boolean nomeClientPronto;
     private boolean emailPronta;
     private boolean utenteNuovo, forgetPassword;
+    private Connection con ;
   
     
-	public GestoreClient(Socket i) {
+	public GestoreClient(Socket i, Connection conn) {
+		this.con = conn;
 		incoming = i;
 		nomeClientPronto = false;
 		passwordPronta = false;
@@ -54,7 +56,7 @@ public class GestoreClient extends Thread {
 				while (true) {
 					if (in.hasNextLine()) {
 						String s = in.nextLine();
-						System.out.println(s);
+						System.out.println(s+ " da gestore client");
 						if(s.charAt(0)=='N'){
 							utenteNuovo = true;
 							StringTokenizer st0 = new StringTokenizer(s,"N:");
@@ -67,6 +69,8 @@ public class GestoreClient extends Thread {
 				
 							
 						}
+						/*
+						*/
 						else if(s.charAt(0)=='§'){
 							StringTokenizer q = new StringTokenizer(s.substring(1,s.length()),":");
 							this.nomeClient = q.nextToken();
@@ -100,6 +104,8 @@ public class GestoreClient extends Thread {
 		}
 
 	}// run
+
+
 
 	public boolean ciSonoMsg() {
 		return msg.size() > 0;

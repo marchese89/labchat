@@ -63,7 +63,7 @@ public class Server implements Runnable {
 			try {
 				System.out.println("Entro nel while true del Server");
 				incoming = s.accept();
-				t = new GestoreClient(incoming);
+				t = new GestoreClient(incoming,conn);
 				t.start();
 				l.lock();
 				while (!t.nomeClientPronto()) {
@@ -145,7 +145,7 @@ public class Server implements Runnable {
 	private void aggiungiUtente(String username, String password, String email) {
 		try {
 			PreparedStatement statement = conn
-					.prepareStatement("INSERT INTO utentiregistrati VALUES(?,?,?);");
+					.prepareStatement("INSERT INTO utentiregistrati(username,pass,email) VALUES(?,?,?);");
 			
 			statement.setString(1, username);
 			statement.setString(2, password);
@@ -162,7 +162,7 @@ public class Server implements Runnable {
 
 		try {
 			PreparedStatement statement = conn
-					.prepareStatement("SELECT * FROM utentiregistrati WHERE username = ?;");
+					.prepareStatement("SELECT username,pass,email FROM utentiregistrati WHERE username = ?;");
 			statement.setString(1, t.getNomeClient());
 			ResultSet result = statement.executeQuery();
 

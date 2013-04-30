@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -37,7 +38,8 @@ import javax.swing.JOptionPane;
 		private String password;
 		private String email;
 		private boolean nuovoUtente;
-		private LinkedList<String> listaContatti;
+		private LinkedList<String> listaContatti, suspendedUser;
+		private Semaphore sem = new Semaphore(0);
 		
 		private void restorerConnection (String ip) {
 			try {
@@ -138,13 +140,16 @@ import javax.swing.JOptionPane;
 		public void run() {
 			//riceviamo di continuo i messaggi dal server
 			while(true){
-				System.out.println("Lato client: " + nomeClient);
 			if(connesso){
 			boolean done = false;
 			while (!done && s.hasNextLine()) {
-				String line = s.nextLine();		
+				String line = s.nextLine();	/*
+				JOptionPane.showMessageDialog(null, null,
+						line,
+						JOptionPane.ERROR_MESSAGE);*/
 				//stiamo ricevendo la lista degli utenti connessi
 				if(line.charAt(0)=='*'){
+					
 					st = new StringTokenizer(line,"*");
 				    l.lock();
 					utentiConnessi.clear();
@@ -152,7 +157,18 @@ import javax.swing.JOptionPane;
 						utentiConnessi.addLast(st.nextToken());
 					    
 					l.unlock();
-				}else if(line.charAt(0)=='L'){//lista dei contatti che ho bloccato
+					
+				}else if(line.charAt(0)=='ç'){
+					suspendedUser = new LinkedList<String>();
+					String users = line.substring(2,line.length());
+					StringTokenizer st = new StringTokenizer(users, ",");
+					while (st.hasMoreTokens()){
+						suspendedUser.add(st.nextToken());
+					}
+					sem.release();
+				}
+				else if(line.charAt(0)=='L'){//lista dei contatti che ho bloccato
+					
 					st = new StringTokenizer(line,"L");
 					l.lock();
 					utentiCheHoBloccato.clear();
@@ -161,16 +177,10 @@ import javax.swing.JOptionPane;
 					l.unlock();
 					
 				}else if(line.charAt(0)=='?'){//messaggio aggiunta contatto
-					System.out.println("Aggiunta contatto...");
-					st = new StringTokenizer(line,"?");
-			        String mitt = st.nextToken();
-					int ris =JOptionPane.showConfirmDialog
-					(null, "L'utente "+mitt+" vuole aggiungerti come contatto, Accetti");
-					if(ris == JOptionPane.OK_OPTION){
-						inviaMessaggio("["+nomeClient+"["+mitt);//conferma richiesta
-					}
-					
-				}else if(line.charAt(0)=='['){//messaggio lista contatti con blocchi e non
+					JOptionPane.showMessageDialog(null,
+							"Qualcuno ti ha aggiunto ai propri amici! Aggiorna la lista delle richieste sospese!");
+				}
+				else if(line.charAt(0)=='['){//messaggio lista contatti con blocchi e non
 					l.lock();
 					listaContatti.clear();
 					st = new StringTokenizer(line, "[");
@@ -280,6 +290,18 @@ import javax.swing.JOptionPane;
 		}
 		public LinkedList<String> getUtentiBloccati(){
 			return utentiCheHoBloccato;
+		}
+
+		public LinkedList<String> getSuspendedList() {
+			inviaMessaggio("ç:"+nomeClient);
+			try {
+				sem.acquire();
+				
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return suspendedUser;
 		}
 		
 

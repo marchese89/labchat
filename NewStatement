@@ -1,0 +1,21 @@
+Statement for suspended_request:
+
+delimiter $$
+
+CREATE TABLE `suspended_request` (
+  `id` int(11) NOT NULL,
+  `applicant` varchar(15) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8$$
+
+Statement for utentiregistrati
+
+delimiter $$
+
+CREATE TABLE `utentiregistrati` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(40) NOT NULL,
+  `pass` varchar(80) NOT NULL,
+  `email` varchar(35) DEFAULT NULL,
+  PRIMARY KEY (`id`,`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8$$
+

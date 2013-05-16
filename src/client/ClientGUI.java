@@ -15,6 +15,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.swing.AbstractAction;
@@ -47,14 +49,21 @@ public class ClientGUI extends JFrame{
     private StringTokenizer st;
     private JLabel statusLabel;
     private boolean fantasma;
+    private int id ;
+    private Set<String> dest;
+    private JButton addUser;
+    private String nomeClient;
+    public void aggiorna () {
+    	setTitle("Conversazione con "+dest.toString());
+    }
     
-	public ClientGUI(Client cc,String destinatario,boolean ghost) {
-        
+	public ClientGUI(Client cc,Set<String> dest, boolean ghost, int id, String nomeClient) {
+		this.nomeClient = nomeClient;
+        this.id = id;
+        this.dest = dest;
 		fantasma = ghost;//diciamo se la finestra è solo fittizia...
-		this.destinatario = destinatario;
 	    this.cc = cc;
 	    f = new Focus();
-	    
 		al = new Ascoltatore();
 		this.addWindowListener(f);
         //dimensione, posizione e layout del frame
@@ -86,8 +95,11 @@ public class ClientGUI extends JFrame{
 		jp2.setLayout(fl);
 		b = new JButton("Invia");
         b.addActionListener(al);
+        addUser = new JButton("Aggiungi utente");
+        addUser.addActionListener(al);
 		jp2.add(js2);
 		jp2.add(b);
+		jp2.add(addUser);
 		//barra di stato
 		JPanel statusPanel = new JPanel();
 		statusPanel.setBorder((Border) new BevelBorder(BevelBorder.LOWERED));
@@ -103,9 +115,9 @@ public class ClientGUI extends JFrame{
 		add(statusPanel,BorderLayout.SOUTH);
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		setTitle("Conversazione con "+destinatario);
+		setTitle("Conversazione con "+dest.toString());
 	    setVisible(true);
-	    rc = new RicezioneClient(cc, ricezione,destinatario,statusLabel);
+	    rc = new RicezioneClient(cc, ricezione,id,statusLabel,this);
 	    rc.start();
        
 	}//costrutture
@@ -129,11 +141,16 @@ public class ClientGUI extends JFrame{
 			if(!fantasma){
 			if (e.getSource() == b) {
 				  if(!invio.getText().equals("")){
-		          cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
+					  cc.sendMessage(id, invio.getText());
+		        //  cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
 			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
 				  invio.setText("");
 				  statusLabel.setText("");
 				  }
+			}
+			else if (e.getSource() == addUser) { /** Da COMPLETARE */
+				LinkedList<String> ll = cc.utentiConnessi();
+				SelectUserPanel p = new SelectUserPanel(ll,nomeClient,cc, id, dest);
 			}
 
 			}else{
@@ -172,7 +189,8 @@ public class ClientGUI extends JFrame{
 	    public void actionPerformed (ActionEvent e){
 	    	if(!fantasma){
 	    	if(!invio.getText().equals("")){
-		          cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
+	    		cc.sendMessage(id, invio.getText());
+		         // cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
 			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
 				  invio.setText("");
 				  statusLabel.setText("");

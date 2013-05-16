@@ -46,7 +46,7 @@ public class MainClient extends JFrame {
 			iscriviti, aggiungiContatto, rimuoviContatto, listaContatti,
 			stileTesto, bloccaContatto, sbloccaContatto,aggiornaLista;
 	private JMenu suspendedRequest;
-	private JMenuItem[] users;
+	private JMenuItem [] users;
 
 	private ActionListener al;
 	private WindowListener wl;
@@ -206,21 +206,12 @@ public class MainClient extends JFrame {
 
 	public void chattaWith(String dest) {
 		l.lock();// per la linkedList utentiCheMiHannoBloccato
-		if (!utentiCheMiHannoBloccato.contains(dest)) {
-			l.unlock();
-			ClientGUI f = new ClientGUI(cc, dest, false);
-			f.setFont(font);
-			f.setForeground(colore);
-			finestreUtenti.put(dest, f);
-			System.out.println("creata finestra vera");
-		} else {
-			l.unlock();
+		if (!utentiCheMiHannoBloccato.contains(dest)) 
+			cc.addDest(dest, font, colore, false);
+		else 
 			// creiamo una finestra che non invia i messaggi
-			ClientGUI f = new ClientGUI(cc, dest, true);
-			f.setFont(font);
-			f.setForeground(colore);
-			finestreUtenti.put(dest, f);
-		}
+			cc.addDest(dest, font, colore, true);
+		l.unlock();
 	}
 
 	public class Ascoltatore implements ActionListener {
@@ -292,11 +283,11 @@ public class MainClient extends JFrame {
 							"nome utente nullo", JOptionPane.ERROR_MESSAGE);
 				}
 			}// if è stato premuto connect
-
+/*
 			if (e.getSource() == chatWith) {
 				String dest = cc.login();
 				chattaWith(dest);
-			}
+			}*/
 			
 			if (users!=null) {
 				for (int i = 0; i<users.length; i++) {
@@ -502,11 +493,13 @@ public class MainClient extends JFrame {
 		public void mouseClicked(MouseEvent e) {
 			if (e.getClickCount() == 2) {
 				int index = list.locationToIndex(e.getPoint());
+				if (index >= 0){
 				ListModel dlm = list.getModel();
 				Object item = dlm.getElementAt(index);
 				;
 				list.ensureIndexIsVisible(index);
 				chattaWith((String) item);
+				}
 			}
 		}
 	}

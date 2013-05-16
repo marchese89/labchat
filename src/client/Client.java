@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Set;
@@ -28,18 +29,56 @@ import javax.swing.JOptionPane;
 		private boolean connesso = false;
 		private StringTokenizer st;
 		private Socket client;
-		private HashMap<String,LinkedList<String>> messaggi;//chiave: mittente mess...
-		private LinkedList<String> utentiInComunicazione;
+		//variabili chat di gruppo
+		
+		private HashMap<Integer,LinkedList<String>> messaggi = new HashMap<Integer,LinkedList<String>>();//chiave: mittente mess...
+		private HashMap<Integer,Set<String>> usersgroup = new HashMap<Integer,Set<String>>(); //id e destinatari
+		private HashMap<Integer,ClientGUI> finestreUtenti = new HashMap<Integer,ClientGUI>();; 
+		
+		//fine variabili di chat di gruppo
+		//private LinkedList<String> utentiInComunicazione;
 		private LinkedList<String> utentiCheHoBloccato;
 		private volatile LinkedList<String> utentiConnessi;
 		private Lock l;
-		private HashMap<String,JFrame> finestreUtenti; 
+	
 		private String nomeClient;
 		private String password;
 		private String email;
 		private boolean nuovoUtente;
 		private LinkedList<String> listaContatti, suspendedUser;
 		private Semaphore sem = new Semaphore(0);
+		private Semaphore id = new Semaphore(0);
+		private int ID = -1;
+		
+		public void addUser (int id, String newuser){
+			inviaMessaggio("l^" + id +"^" + newuser);
+		}
+		public void sendMessage (int id, String message){
+			inviaMessaggio("m;"+id+";"+nomeClient+";"+message);
+		}
+		public void addDest(String dest, Font f, Color c, boolean ghost) { 
+			inviaMessaggio("ri^"+nomeClient+"^"+dest);
+			try {
+				id.acquire();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			System.out.println(id + " ID");
+			if (ID!=-1) {
+			Set<String> ll = new HashSet<>();
+			ll.add(dest);
+			usersgroup.put(ID, ll);
+			messaggi.put(ID, new LinkedList<String>());
+			ClientGUI f1 = new ClientGUI(this,ll,ghost, ID,nomeClient);
+			finestreUtenti.put(ID, f1);
+			ID = -1;
+			System.out.println("aggiunto un client");
+			}
+			else {
+				throw new IllegalArgumentException ("ID = -1");
+			}
+		}
 		
 		private void restorerConnection (String ip) {
 			try {
@@ -110,31 +149,29 @@ import javax.swing.JOptionPane;
 			this.email = email;
 		}
 	    public Client(String nomeClient,String password,String email,boolean nU){
-	    	
 	    	this.nomeClient = nomeClient;
 	    	this.password = password;
 	    	this.nuovoUtente = nU;
 	    	this.email = email;
-	    	messaggi = new HashMap<String,LinkedList<String>>();
-	    	utentiInComunicazione = new LinkedList<String>();
+	    	messaggi = new HashMap<Integer,LinkedList<String>>();
+	    //	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
 	    	this.listaContatti = new LinkedList<String>();
 	    	utentiCheHoBloccato = new LinkedList<String>();
-	    	finestreUtenti = new HashMap<String,JFrame>();
+	    	finestreUtenti = new HashMap<Integer,ClientGUI>();
 	    }
 	    public Client(String nomeClient,String password,boolean nU){
-	    	
 	    	this.nomeClient = nomeClient;
 	    	this.password = password;
 	    	this.nuovoUtente = nU;
-	    	messaggi = new HashMap<String,LinkedList<String>>();
-	    	utentiInComunicazione = new LinkedList<String>();
+	    	messaggi = new HashMap<Integer,LinkedList<String>>();
+	    //	utentiInComunicazione = new LinkedList<String>();
 	    	utentiConnessi = new LinkedList<String>();
 	    	l = new ReentrantLock();
 	    	this.listaContatti = new LinkedList<String>();
 	    	utentiCheHoBloccato = new LinkedList<String>();
-	    	finestreUtenti = new HashMap<String,JFrame>();
+	    	finestreUtenti = new HashMap<Integer,ClientGUI>();
 	    }
 		@Override
 		public void run() {
@@ -188,37 +225,78 @@ import javax.swing.JOptionPane;
 						listaContatti.add(st.nextToken());
 					l.unlock();
 					
-				}else if (line.charAt(0)== '<'){
-					st = new StringTokenizer(line,"<");
-					String mitt = st.nextToken();
-					if(messaggi.containsKey(mitt))
-						messaggi.get(mitt).addLast(line);
-					else{
-						messaggi.put(mitt, new LinkedList<String>());
-						messaggi.get(mitt).addLast(line);
+				}
+				/*
+				 * Parte modificata da bruno_scrivo : cambiare i caratteri di controllo
+				 */
+				else if (line.charAt(0)=='m'){ //ricevuto un nuovo messaggio
+					StringTokenizer st = new StringTokenizer(line, ":");
+					st.nextToken();
+					int id = Integer.parseInt(st.nextToken());
+					String mittente = st.nextToken();
+					
+					if (line.charAt(1)=='n'){ // se sta iniziando ora la conversazione
+						Set<String> ll = new HashSet<String>();
+						ll.add(mittente);
+						while (st.hasMoreTokens())
+							ll.add(st.nextToken());
+						usersgroup.put(id, ll);
+						messaggi.put(id, new LinkedList<String>());
+						finestreUtenti.put(id, new ClientGUI(this,ll,false,id,nomeClient));
 					}
-					
-				}else{
-				st = new StringTokenizer(line,":");
-				String mittente = st.nextToken();
-				if(!utentiInComunicazione.contains(mittente)){
-					utentiInComunicazione.addLast(mittente);
-					
-				    JFrame f = new ClientGUI(this,mittente,false);
-				    finestreUtenti.put(mittente, f);
+					else {
+						String messaggio = st.nextToken();
+					finestreUtenti.get(id).setVisible(true);
+					messaggi.get(id).add(mittente + " ha scritto: " + messaggio);
+					}
 				}
-				
-				String msg = st.nextToken();
-				if(messaggi.containsKey(mittente))
-				messaggi.get(mittente).addLast((mittente+" ha scritto:\n" + msg+"\n"));
-				else{
-					messaggi.put(mittente, new LinkedList<String>());
-					messaggi.get(mittente).addLast(mittente+" ha scritto:\n" + msg+"\n");
+				else if (line.charAt(0)=='^') { //Fatto
+					ID = Integer.parseInt(line.substring(1,line.length()));
+					id.release();
 				}
-				if (msg.trim().equals("bye"))
-					done = true;
+				else if (line.charAt(0)=='l'){ //Fatto. Il server invia al client un messaggio per aggiungere un utente alla conversazione
+					StringTokenizer st = new StringTokenizer(line,";");
+					st.nextToken();
+					int id = Integer.parseInt(st.nextToken());
+					String addUser = st.nextToken();
+					usersgroup.get(id).add(addUser);
+					finestreUtenti.get(id).aggiorna();
+					finestreUtenti.get(id).setVisible(true);
+					messaggi.get(id).add("##"+addUser);
+				}
+				/*
+				 * Fine parte modificata.
+				 */
 				
-			}//else (mssaggi normali)
+				else if (line.charAt(0)== '<'){ //visualizzato alle...
+					/*
+					st = new StringTokenizer(line,"<");
+					LinkedList<String> mit = new LinkedList<String>();
+					LinkedList<String> mit2;
+					while (st.hasMoreTokens()) 
+						mit.add(st.nextToken());	
+					int index = -1;
+					for (int i = 0 ; i<dest.size(); i++) 
+						if (mit.contains(dest.get(i))){
+								index = i;
+								mit2 = new LinkedList<String>(dest.get(i));
+								break;
+						}
+					
+					if (index>-1) {
+						if (!mit.equals(mit2)) {
+							dest.get(index).addAll(mit2);
+						}
+						messaggi.get(index).addLast(line);
+					}
+					else{
+						dest.add(mit);
+						messaggi.put(dest.size()+1, new LinkedList<String>());
+						messaggi.get(dest.size()+1).addLast(line);
+					}
+				*/	
+				}
+					
 			}// while
 			}
 			try {
@@ -233,12 +311,12 @@ import javax.swing.JOptionPane;
 		public void inviaMessaggio(String m){
 			pr.println(m);
 		}
-        public boolean ciSonoMsg(String mitt){
+        public boolean ciSonoMsg(int mitt){
         	if(messaggi.containsKey(mitt))
         	return messaggi.get(mitt).size() > 0;
         	else return false;
         }
-	    public String riceviMsg(String mitt){//riceviamo messaggi dal mittente selezionato
+	    public String riceviMsg(int mitt){//riceviamo messaggi dal mittente selezionato
 	    	return messaggi.get(mitt).removeFirst();
 	    }
 	    
@@ -256,11 +334,12 @@ import javax.swing.JOptionPane;
 		public synchronized LinkedList<String> utentiConnessi(){
 			return utentiConnessi;
 		}
+		/*
 		public String login(){
 			String dest = JOptionPane.showInputDialog("destinatario");
 			utentiInComunicazione.addLast(dest);
 			return dest;
-		}
+		}*/
 		public void disconnetti(){
 			pr.println("disconnect");
 			connesso = false;
@@ -271,14 +350,14 @@ import javax.swing.JOptionPane;
 		}
 		
 		public void setFont(Font f){
-			Set<String> utenti = finestreUtenti.keySet();
-			for(String i: utenti){
+			Set<Integer> utenti = finestreUtenti.keySet();
+			for(Integer i: utenti){
 				finestreUtenti.get(i).setFont(f);
 			}
 		}
 		public void setForeground(Color c){
-			Set<String> utenti = finestreUtenti.keySet();
-			for(String i: utenti){
+			Set<Integer> utenti = finestreUtenti.keySet();
+			for(Integer i: utenti){
 				finestreUtenti.get(i).setForeground(c);
 			}
 		}

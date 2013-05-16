@@ -23,6 +23,7 @@ import javax.swing.JTextArea;
 public class RicezioneServer extends Thread {
 	private HashMap<String, GestoreClient> clients;
 	private JTextArea jt;
+	private HashMap<Integer, LinkedList<String>> group;
 	private StringTokenizer st;
 	private volatile Set<String> chiavi;
 	private Lock l;
@@ -30,11 +31,17 @@ public class RicezioneServer extends Thread {
 	private Connection conn;
 	private PreparedStatement statement,statementInsert,removeStatement,
 	                          lockStatement,unlockStatement;
-
+	private int id = 1; //Da modificare: gestire la chiusura di una chat. Altrimenti il numero di elementi dell'hashmap group sarà molto alto.
 	
+	private int getID () {
+		int holdId = id;
+		id = id + 1;
+		return holdId;
+	}
 	public RicezioneServer(HashMap<String, GestoreClient> clients,
 			HashMap<String,LinkedList<String>> messaggiOffline,
 			JTextArea jt,Lock l,Connection conn) {
+		group = new HashMap<Integer, LinkedList<String>>();
 		this.clients = clients;
 		this.jt = jt;
 		this.l = l;
@@ -113,26 +120,21 @@ public class RicezioneServer extends Thread {
 									messaggiOffline.get(destinatario).addLast(messaggio);
 								}
 						}else if(messaggio.charAt(0)=='A'){//messaggio addUser
-							   System.out.println("ricevuto mess addUser");
 						       st = new StringTokenizer(messaggio.substring(2,messaggio.length()),",");
 						       String mittente = st.nextToken();
 						       String destinatario = st.nextToken();
 						       try {
 						    	   //interroghiamo il database
 								statement.setString(1, destinatario);
-								System.out.println(statement.toString());
 								ResultSet result = statement.executeQuery();
-								System.out.println("Query eseguita: " );
 								while(result.next()){
 									String user = result.getString(1);
 									if(clients.containsKey(user)){
-										System.out.println("L'utente: " + user + " è online e invio la richiesta");
 										newSuspendedRequest(mittente,destinatario);
 									clients.get(user).inviaMsg("?"+j);
 									
 									}
 									else{
-										System.out.println("L'utente: " + user + " non è online e invio la richiesta");
 										newSuspendedRequest(mittente,destinatario);
 									}
 										
@@ -140,7 +142,6 @@ public class RicezioneServer extends Thread {
 							} catch (SQLException e) {
 								e.printStackTrace();
 							}
-						
 						}else if(messaggio.charAt(0)=='['){//inseriamo 2 utenti amici
 							boolean add = messaggio.charAt(2)=='Y';
 							st = new StringTokenizer(messaggio.substring(4,messaggio.length()),",");
@@ -161,7 +162,6 @@ public class RicezioneServer extends Thread {
 							}
 							}
 							removeFromSuspended(utente1, utente2);
-							
 						}else if(messaggio.charAt(0)=='R'){//messaggio rimozione utente
 							st = new StringTokenizer(messaggio,"R");
 							String utente1=j;
@@ -177,7 +177,51 @@ public class RicezioneServer extends Thread {
 							}catch(SQLException e){
 								e.printStackTrace();
 							}
-						}else if (messaggio.charAt(0)=='M'){
+						} 
+						/* Gestione dell'invio dei messaggi in chat. */
+						
+						else if (messaggio.substring(0,3).equals("ri^")){
+							StringTokenizer st = new StringTokenizer (messaggio, "^");
+							st.nextToken();
+							String mittente = st.nextToken();
+							String destinatario = st.nextToken();
+							int id = getID();
+							LinkedList<String> ll = new LinkedList<String>();
+							ll.add(mittente); 	ll.add(destinatario);
+							group.put(id, ll);
+							clients.get(destinatario).inviaMsg("mn:"+id+":"+mittente);
+							clients.get(mittente).inviaMsg("^"+id);
+							
+						}
+						else if (messaggio.charAt(0) =='l') {
+							StringTokenizer st = new StringTokenizer(messaggio, "^");
+							st.nextToken();
+							int id = Integer.parseInt(st.nextToken());
+							String userToAdd = st.nextToken();
+							for (String i: group.get(id))
+								clients.get(i).inviaMsg("l;" + id + ";" + userToAdd);
+							StringBuilder sb = new StringBuilder();
+							for (String i: group.get(id))
+								sb.append(":"+i);
+							clients.get(userToAdd).inviaMsg("mn:"+id+sb.toString());
+							group.get(id).add(userToAdd);
+						}
+						else if (messaggio.charAt(0)=='m'){
+							StringTokenizer st = new StringTokenizer(messaggio, ";");
+							st.nextToken();
+							int id = Integer.parseInt(st.nextToken());
+							String mitt = st.nextToken();
+							String message = st.nextToken();
+							for (String i : group.get(id))
+								if (!i.equals(mitt))
+									clients.get(i).inviaMsg("m:" + id + ":" + mitt + ":" + message );
+						}
+						
+						/* Fine gestione messaggi chat. */
+						
+						/**
+						
+						else if (messaggio.charAt(0)=='M'){// gestore dei messaggi
 						st = new StringTokenizer(messaggio,"M:");
 						String dest = st.nextToken();
 						String msg = st.nextToken();
@@ -195,9 +239,14 @@ public class RicezioneServer extends Thread {
 								messaggiOffline.get(dest).addLast(j + ":" + msg);
 							}
 						}
-						}//se non è un messaggio di disconnessione
+						}//se non è un messaggio di disconnessione 
+						*/
+						
 					}//se ci sono messaggi nella coda di ogni client
 				}//iterazione su tutte le chiavi
+			
+			
+			
 			l.unlock();
 			try {
 				sleep(1000);
@@ -270,3 +319,4 @@ public class RicezioneServer extends Thread {
 		
 	}
 }
+

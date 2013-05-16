@@ -103,7 +103,7 @@ public class NotificaClient extends Thread{
 					ResultSet userLocked = utentiBloccati.executeQuery();
 					//aggiorniamo la lista degli utenti amci con la notifica di blocco
 					while (result.next()) {
-						System.out.println("9");
+						//System.out.println("9");
 						int bloccato_da = result.getInt(3);
 						if(bloccato_da ==0)//notifichiamo al client se è stato bloccato
 						utentiAmici.addLast(result.getString(2)+" f");//non bloccato	

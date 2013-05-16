@@ -14,24 +14,32 @@ public class RicezioneClient extends Thread{
     private String mittente;
     private JLabel status;
     private StringTokenizer st;
-	public RicezioneClient(Client c,JTextArea jt,String mittente,JLabel status){
+    private int id;
+    private ClientGUI client;
+	public RicezioneClient(Client c,JTextArea jt,int id,JLabel status, ClientGUI client){
+		this.client = client;
 		this.jt = jt;
 		this.cc = c;
-		this.mittente = mittente;
+		this.id = id;
 		this.status = status;
 	}
 	public void run(){
 		while(true){
     		if(cc.eConnesso())
-    		if(cc.ciSonoMsg(mittente)){
-    			String m = cc.riceviMsg(mittente);
+    		if(cc.ciSonoMsg(id)){
+    			String m = cc.riceviMsg(id);
     			if(m.charAt(0) == '<'){
     				st = new StringTokenizer(m,"<");
     				st.nextToken();//rimuoviamo il mittente
     				status.setText("Visualizzato alle "+st.nextToken());
     				status.repaint();
-    			}else{
-    			jt.append(m);
+    			}
+    			else if (m.length()>2 && m.substring(0,2).equals("##")){
+    				client.aggiorna();
+    				jt.append("Aggiunto utente: " + m.substring(2,m.length()) +"\n");
+    			}
+    			else{
+    			jt.append(m+"\n");
     			status.setText("");
     			}
     		}

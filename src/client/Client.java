@@ -33,7 +33,7 @@ import javax.swing.JOptionPane;
 		
 		private HashMap<Integer,LinkedList<String>> messaggi = new HashMap<Integer,LinkedList<String>>();//chiave: mittente mess...
 		private HashMap<Integer,Set<String>> usersgroup = new HashMap<Integer,Set<String>>(); //id e destinatari
-		private HashMap<Integer,ClientGUI> finestreUtenti = new HashMap<Integer,ClientGUI>();; 
+		private HashMap<Integer,ClientGUI> finestreUtenti = new HashMap<Integer,ClientGUI>();
 		
 		//fine variabili di chat di gruppo
 		//private LinkedList<String> utentiInComunicazione;
@@ -254,6 +254,16 @@ import javax.swing.JOptionPane;
 					ID = Integer.parseInt(line.substring(1,line.length()));
 					id.release();
 				}
+				
+				else if (line.charAt(0)=='&'){
+					st = new StringTokenizer(line,"&");
+					int id = Integer.parseInt(st.nextToken());
+					String userToRemove = st.nextToken();
+					Set<String> al = usersgroup.get(id);
+					usersgroup.get(id).remove(userToRemove);
+					finestreUtenti.get(id).append("L'utente " + userToRemove + " ha abbandonato la conversazione");
+					finestreUtenti.get(id).aggiorna();
+					}
 				else if (line.charAt(0)=='l'){ //Fatto. Il server invia al client un messaggio per aggiungere un utente alla conversazione
 					StringTokenizer st = new StringTokenizer(line,";");
 					st.nextToken();

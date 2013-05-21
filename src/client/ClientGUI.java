@@ -8,6 +8,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.LayoutManager;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -33,6 +34,8 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.text.Keymap;
 
+import client.MainClient.AscoltatoreFinestra;
+
 
 @SuppressWarnings("serial")
 public class ClientGUI extends JFrame{
@@ -53,11 +56,14 @@ public class ClientGUI extends JFrame{
     private Set<String> dest;
     private JButton addUser;
     private String nomeClient;
+    private AscoltatoreFinestra alF; 
     public void aggiorna () {
     	setTitle("Conversazione con "+dest.toString());
     }
     
 	public ClientGUI(Client cc,Set<String> dest, boolean ghost, int id, String nomeClient) {
+		alF = new AscoltatoreFinestra();
+		addWindowListener(alF);
 		this.nomeClient = nomeClient;
         this.id = id;
         this.dest = dest;
@@ -132,7 +138,10 @@ public class ClientGUI extends JFrame{
     	invio.setForeground(c);
     	//repaint();
     }
-   
+    
+    public void append (String s) {
+    	ricezione.append(s);
+    }
 
 	class Ascoltatore implements ActionListener {
 
@@ -204,6 +213,21 @@ public class ClientGUI extends JFrame{
 				  }
 	    }//metodo
 	}//classe
-
 	
+
+
+	class AscoltatoreFinestra extends WindowAdapter {
+
+		@Override
+		public void windowClosing(WindowEvent e) {
+			if (cc != null)
+				if (cc.eConnesso()){
+					cc.inviaMessaggio("&" + id + "&" + nomeClient);
+					System.out.println("invio un messaggio al server;");
+				}
+			
+
+		}
+
+	}// classe interna
 }

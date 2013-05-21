@@ -477,7 +477,6 @@ public class MainClient extends JFrame {
 			if (cc != null)
 				if (cc.eConnesso())
 					cc.disconnetti();
-			// System.out.println("provo a disconnettermi");
 
 		}
 

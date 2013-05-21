@@ -119,7 +119,21 @@ public class RicezioneServer extends Thread {
 									messaggiOffline.put(destinatario, new LinkedList<String>());
 									messaggiOffline.get(destinatario).addLast(messaggio);
 								}
-						}else if(messaggio.charAt(0)=='A'){//messaggio addUser
+						}
+						/** Parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
+						else if (messaggio.charAt(0)=='&'){
+							st = new StringTokenizer(messaggio,"&");
+							int id = Integer.parseInt(st.nextToken());
+							String userToRemove = st.nextToken();
+							LinkedList<String> al = group.get(id);
+								for (String i : al){
+									if (!i.equals(userToRemove))
+									clients.get(i).inviaMsg("&"+id+"&"+userToRemove);
+								}
+							group.get(id).remove(userToRemove);
+						}
+						/** Fine parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
+						else if(messaggio.charAt(0)=='A'){//messaggio addUser
 						       st = new StringTokenizer(messaggio.substring(2,messaggio.length()),",");
 						       String mittente = st.nextToken();
 						       String destinatario = st.nextToken();

@@ -279,32 +279,17 @@ import javax.swing.JOptionPane;
 				 */
 				
 				else if (line.charAt(0)== '<'){ //visualizzato alle...
-					/*
 					st = new StringTokenizer(line,"<");
-					LinkedList<String> mit = new LinkedList<String>();
-					LinkedList<String> mit2;
-					while (st.hasMoreTokens()) 
-						mit.add(st.nextToken());	
-					int index = -1;
-					for (int i = 0 ; i<dest.size(); i++) 
-						if (mit.contains(dest.get(i))){
-								index = i;
-								mit2 = new LinkedList<String>(dest.get(i));
-								break;
-						}
-					
-					if (index>-1) {
-						if (!mit.equals(mit2)) {
-							dest.get(index).addAll(mit2);
-						}
-						messaggi.get(index).addLast(line);
+                    st.nextToken();//rimuoviamo il mittente
+					st.nextToken();//rimuoviamo l'ora
+					Integer id = Integer.parseInt(st.nextToken());
+					if (usersgroup.containsKey(id) && usersgroup.get(id).size()==1){
+						System.out.println("L'altro client riceve il messaggio dal server e si appronta a stampare visualizzato alle...");
+						messaggi.get(id).addLast(line);
 					}
-					else{
-						dest.add(mit);
-						messaggi.put(dest.size()+1, new LinkedList<String>());
-						messaggi.get(dest.size()+1).addLast(line);
+					else {
+						System.out.println("L'altro client riceve il messaggio dal server ma la conversazione non sembra a due utenti");
 					}
-				*/	
 				}
 					
 			}// while

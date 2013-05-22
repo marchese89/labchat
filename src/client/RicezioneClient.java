@@ -33,6 +33,7 @@ public class RicezioneClient extends Thread{
     				st.nextToken();//rimuoviamo il mittente
     				status.setText("Visualizzato alle "+st.nextToken());
     				status.repaint();
+    				System.out.println("Messaggio visualizzato correttamente");
     			}
     			else if (m.length()>2 && m.substring(0,2).equals("##")){
     				client.aggiorna();

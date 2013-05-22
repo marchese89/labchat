@@ -107,18 +107,27 @@ public class RicezioneServer extends Thread {
 							String client = messaggio.substring(2,messaggio.length());
 							getSuspendedList(client);
 						}
+						
+						/* Messaggio "visualizzato alle" che funziona solo nel caso di conversazioni a due utenti" */
+						
 						else if (messaggio.charAt(0)=='<'){//visualizzato alle...
 							st = new StringTokenizer(messaggio,"<");
-                            st.nextToken();//rimuoviamo il mittente
+                            String mit = st.nextToken();//rimuoviamo il mittente
 							st.nextToken();//rimuoviamo l'ora
-							String destinatario = st.nextToken();
-							if(clients.containsKey(destinatario)){
-								clients.get(destinatario).inviaMsg(messaggio);
-								}else{//il client è offline
+							Integer id = Integer.parseInt(st.nextToken());
+							if(group.containsKey(id) && group.get(id).size()==2){
+								mit = (!group.get(id).getFirst().equals(mit)) ? group.get(id).getFirst() : group.get(id).getLast();
+								System.out.println("Il server riceve il messaggio e lo rispedisce (Ricezione Server)");
+								clients.get(mit).inviaMsg(messaggio);
+								}
+							else {
+								System.out.println("Il server riceve il messaggio ma la conversazione non è a due utenti!");
+							}/*
+							else{//il client è offline
 									if(!messaggiOffline.containsKey(destinatario))
 									messaggiOffline.put(destinatario, new LinkedList<String>());
 									messaggiOffline.get(destinatario).addLast(messaggio);
-								}
+								}*/
 						}
 						/** Parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
 						else if (messaggio.charAt(0)=='&'){

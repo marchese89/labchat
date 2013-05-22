@@ -179,6 +179,7 @@ public class ClientGUI extends JFrame{
 
 		@Override
 		public void windowActivated(WindowEvent arg0) {
+			if (dest.size()==1){
 			GregorianCalendar gc = new GregorianCalendar();
             Date d =gc.getTime();
             st = new StringTokenizer(d.toString());
@@ -186,9 +187,11 @@ public class ClientGUI extends JFrame{
             String ora = st.nextToken();
             st= new StringTokenizer(ora,":");
             String oraFormatted = st.nextToken()+":"+st.nextToken();
-			cc.inviaMessaggio("<"+cc.getNomeClient()+"<"+oraFormatted+"<"+destinatario);
+			cc.inviaMessaggio("<"+cc.getNomeClient()+"<"+oraFormatted+"<"+id);
+			System.out.println(cc.getNomeClient() + " visualizza il messaggio e informa il server (ClientGUI)");
 			//System.out.println("<"+cc.getNomeClient()+"<"+oraFormatted+"<"+destinatario);
 			//System.out.println(oraFormatted);
+			}	
 			
 		}
 

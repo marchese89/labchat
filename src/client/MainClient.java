@@ -25,6 +25,7 @@ import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -37,6 +38,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 
+import Utility.JListWithImages;
 import Utility.Security;
 
 @SuppressWarnings("all")
@@ -54,8 +56,9 @@ public class MainClient extends JFrame {
 	private HashMap<String, JFrame> finestreUtenti;
 	// private NewClientGUI client;
 	// LinkedList<String> utentiConnessi;
-	Vector<String> words;
-	JList<String> wordList;
+	Vector<JPanel> words;
+	JListWithImages wordList;
+	private JScrollPane scroll;
 	private String nomeClient;
 	private String password;
 	private Connection conn;
@@ -149,16 +152,17 @@ public class MainClient extends JFrame {
 		menuBar.add(aiuto);
 		menuBar.add(opzioni);
 		menuBar.add(personalizza);
-		words = new Vector<String>();
-		wordList = new JList<String>(words);// Lista utenti connessi
+		words = new Vector();
+		wordList = new JListWithImages();// Lista utenti connessi
+		wordList.setListData(words);
 		wordList.addMouseListener(new ActionJList(wordList));
 		wordList.setMinimumSize(new Dimension(HEIGHT, WIDTH));
 		wordList.setPreferredSize(new Dimension(HEIGHT, WIDTH));
 		wordList.setVisibleRowCount(8);
-		JScrollPane sp = new JScrollPane(wordList);
+		scroll = new JScrollPane(wordList);
 		JPanel jp = new JPanel();
-		jp.add(sp);
-		JLabel utenti = new JLabel("Utenti Connessi");
+		jp.add(scroll);
+		JLabel utenti = new JLabel("Utenti Amici");
 		JPanel pannello2 = new JPanel();
 		pannello2.add(utenti);
 
@@ -262,11 +266,9 @@ public class MainClient extends JFrame {
 							listaContatti.setEnabled(true);
 							iscriviti.setEnabled(false);
 							rimuoviContatto.setEnabled(true);
-
 							setFont(font);
 							setForeground(colore);
-							JOptionPane.showMessageDialog(null, null,
-									"connesso al server", 1);
+							JOptionPane.showMessageDialog(null, null,"connesso al server", 1);
 						} else {
 							JOptionPane.showMessageDialog(null, null,
 									"Username e/o password Errati",
@@ -332,7 +334,7 @@ public class MainClient extends JFrame {
 				connect.setEnabled(true);
 				iscriviti.setEnabled(true);
 				// cancello l'elenco degli utenti connessi
-				words = new Vector<String>();
+				words = new Vector<JPanel>();
 				wordList.setListData(words);
 				wordList.repaint();
 
@@ -497,7 +499,17 @@ public class MainClient extends JFrame {
 				Object item = dlm.getElementAt(index);
 				;
 				list.ensureIndexIsVisible(index);
-				chattaWith((String) item);
+				JPanel x = (JPanel) item;
+				JLabel l = (JLabel)x.getComponent(1);
+				JLabel icoL = (JLabel)x.getComponent(0);
+				ImageIcon im = (ImageIcon) icoL.getIcon();
+				if (im.toString().contains("online"))
+				chattaWith(l.getText());
+				else {
+					/* 
+					 * Gestione del messaggio offline.
+					 */
+				}
 				}
 			}
 		}

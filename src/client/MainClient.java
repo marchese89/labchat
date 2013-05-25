@@ -217,6 +217,9 @@ public class MainClient extends JFrame {
 			cc.addDest(dest, font, colore, true);
 		l.unlock();
 	}
+	public void chattaOff (String dest) {
+		
+	}
 
 	public class Ascoltatore implements ActionListener {
 
@@ -492,24 +495,23 @@ public class MainClient extends JFrame {
 		}
 
 		public void mouseClicked(MouseEvent e) {
+			
+			// Da modificare togliendo la parte che non serve.
 			if (e.getClickCount() == 2) {
 				int index = list.locationToIndex(e.getPoint());
 				if (index >= 0){
 				ListModel dlm = list.getModel();
 				Object item = dlm.getElementAt(index);
-				;
 				list.ensureIndexIsVisible(index);
 				JPanel x = (JPanel) item;
 				JLabel l = (JLabel)x.getComponent(1);
 				JLabel icoL = (JLabel)x.getComponent(0);
 				ImageIcon im = (ImageIcon) icoL.getIcon();
-				if (im.toString().contains("online"))
+				//if (im.toString().contains("online")) //se l'utente è online 
 				chattaWith(l.getText());
-				else {
-					/* 
-					 * Gestione del messaggio offline.
-					 */
-				}
+				//else {
+					//chattaOff(l.getText());
+				//}
 				}
 			}
 		}

@@ -157,7 +157,7 @@ public class ClientGUI extends JFrame{
 				  statusLabel.setText("");
 				  }
 			}
-			else if (e.getSource() == addUser) { /** Da COMPLETARE */
+			else if (e.getSource() == addUser) {
 				LinkedList<String> ll = cc.utentiConnessi();
 				SelectUserPanel p = new SelectUserPanel(ll,nomeClient,cc, id, dest);
 			}
@@ -226,7 +226,6 @@ public class ClientGUI extends JFrame{
 			if (cc != null)
 				if (cc.eConnesso()){
 					cc.inviaMessaggio("&" + id + "&" + nomeClient);
-					System.out.println("invio un messaggio al server;");
 				}
 			
 

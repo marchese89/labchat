@@ -47,7 +47,9 @@ import javax.swing.JOptionPane;
 		private boolean nuovoUtente;
 		private LinkedList<String> listaContatti, suspendedUser;
 		private Semaphore sem = new Semaphore(0);
+		private Semaphore list = new Semaphore(0);
 		private Semaphore id = new Semaphore(0);
+		private Set<String> temp = new HashSet<String>();
 		private int ID = -1;
 		
 		public void addUser (int id, String newuser){
@@ -246,6 +248,17 @@ import javax.swing.JOptionPane;
 					}
 					else {
 						String messaggio = st.nextToken();
+						if (!finestreUtenti.containsKey(id)) {
+							inviaMessaggio("(:" + id+"(:" + nomeClient); //richiedo la lista degli utenti di quella conversazione
+							try {
+								list.acquire();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							usersgroup.put(id, temp);
+							messaggi.put(id, new LinkedList<String>());
+							finestreUtenti.put(id, new ClientGUI(this,temp,false,id,nomeClient));
+						}
 					finestreUtenti.get(id).setVisible(true);
 					messaggi.get(id).add(mittente + " ha scritto: " + messaggio);
 					}
@@ -253,6 +266,13 @@ import javax.swing.JOptionPane;
 				else if (line.charAt(0)=='^') { //Fatto
 					ID = Integer.parseInt(line.substring(1,line.length()));
 					id.release();
+				}
+				else if (line.charAt(0)=='(' && line.charAt(1) == ':') {
+					String mess = line.substring(2,line.length());
+					StringTokenizer st = new StringTokenizer (mess,":");
+					while (st.hasMoreTokens())
+						temp.add(st.nextToken());
+					list.release();
 				}
 				
 				else if (line.charAt(0)=='&'){

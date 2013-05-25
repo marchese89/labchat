@@ -26,12 +26,10 @@ public class Server implements Runnable {
 	private Lock l;
 	//private Statement stat;
 	private Connection conn;
-	private HashMap<String, LinkedList<String>> messaggiOffline;
 
 	public Server(JTextArea j) {
 		jt = j;
 		clients = new HashMap<String, GestoreClient>();
-		messaggiOffline = new HashMap<String, LinkedList<String>>();
 		try {
 			s = new ServerSocket(8189);
 		} catch (IOException e) {
@@ -51,7 +49,7 @@ public class Server implements Runnable {
 			e1.printStackTrace();
 		}
 		
-		Thread ricez = new RicezioneServer(clients, messaggiOffline, jt, l,conn);
+		RicezioneServer ricez = new RicezioneServer(clients, jt, l,conn);
 		ricez.start();
 		
 		Thread notifica = new NotificaClient(clients, l,conn);
@@ -106,18 +104,23 @@ public class Server implements Runnable {
 					if (pwBuona) {
 						clients.put(t.getNomeClient(), t);
 						t.inviaMsg("correctlogin");
+						
+						
+						Object [][] off = ricez.sendOff(t.getNomeClient());
+						if (off !=null){
+						for (int i = 0; i<off.length; i++) {
+							LinkedList<String> ll = (LinkedList<String>) off[i][1];
+							if (ll.size()>1) {
+							String mittente = ll.removeFirst();
+							t.inviaMsg("mn:"+off[i][0]+":"+mittente);
+							for (String j : ll)
+								t.inviaMsg("m:" + off[i][0] + ":" + mittente + ":" + j);
+						}
+						}
+						}
 						// appena il client si connette gli mandiamo tutti i
 						// mess che
 						// ha ricevuto quando era offline
-						if (messaggiOffline.containsKey(t.getNomeClient())) {
-							LinkedList<String> ll = messaggiOffline.get(t
-									.getNomeClient());
-							while (ll.size() > 0){
-								//System.out.println("4");
-								t.inviaMsg(ll.removeFirst());
-								System.out.println("inviato mess offline");
-							}
-						}
 					} else
 						t.inviaMsg("failedlogin");
 				}// se è un utente già registrato

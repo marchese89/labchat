@@ -27,7 +27,12 @@ public class RicezioneServer extends Thread {
 	private StringTokenizer st;
 	private volatile Set<String> chiavi;
 	private Lock l;
-	private HashMap<String,LinkedList<String>> messaggiOffline;
+	
+	/* Variabili di istanza della conversazione offline */
+	private HashMap<String, LinkedList<Integer>> nameUser;
+	private HashMap<Integer, LinkedList<String>> offlineMes;
+	/* Fine variabili di istanza delle conversazioni offline */
+	
 	private Connection conn;
 	private PreparedStatement statement,statementInsert,removeStatement,
 	                          lockStatement,unlockStatement;
@@ -39,13 +44,13 @@ public class RicezioneServer extends Thread {
 		return holdId;
 	}
 	public RicezioneServer(HashMap<String, GestoreClient> clients,
-			HashMap<String,LinkedList<String>> messaggiOffline,
 			JTextArea jt,Lock l,Connection conn) {
 		group = new HashMap<Integer, LinkedList<String>>();
 		this.clients = clients;
 		this.jt = jt;
 		this.l = l;
-		this.messaggiOffline = messaggiOffline;
+		nameUser = new HashMap<String, LinkedList<Integer>>();
+		offlineMes = new HashMap<Integer, LinkedList<String>>();
 		this.conn = conn;
 	}
     //iteriamo sulle chiavi dell'HashMap e riceviamo i messaggi
@@ -118,6 +123,7 @@ public class RicezioneServer extends Thread {
 							if(group.containsKey(id) && group.get(id).size()==2){
 								mit = (!group.get(id).getFirst().equals(mit)) ? group.get(id).getFirst() : group.get(id).getLast();
 								System.out.println("Il server riceve il messaggio e lo rispedisce (Ricezione Server)");
+								if (clients.containsKey(mit))
 								clients.get(mit).inviaMsg(messaggio);
 								}
 							else {
@@ -135,13 +141,25 @@ public class RicezioneServer extends Thread {
 							int id = Integer.parseInt(st.nextToken());
 							String userToRemove = st.nextToken();
 							LinkedList<String> al = group.get(id);
+							if (!offlineMes.containsKey(id)) { // Se la conversazione non è una conversazione offline
 								for (String i : al){
 									if (!i.equals(userToRemove))
 									clients.get(i).inviaMsg("&"+id+"&"+userToRemove);
 								}
 							group.get(id).remove(userToRemove);
+							if (group.get(id).size()==0) group.remove(id);
+							}
 						}
 						/** Fine parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
+						else if (messaggio.charAt(0)=='(' && messaggio.charAt(1)==':') {//invio la lista dei destinatari a partire dall'id.
+							st = new StringTokenizer(messaggio,"(:");
+							int id = Integer.parseInt(st.nextToken());
+							String mitt = st.nextToken();
+							StringBuilder sb = new StringBuilder();
+							for (String i : group.get(id))
+								sb.append(":"+i);
+							clients.get(mitt).inviaMsg("(:"+sb.toString());
+						}
 						else if(messaggio.charAt(0)=='A'){//messaggio addUser
 						       st = new StringTokenizer(messaggio.substring(2,messaggio.length()),",");
 						       String mittente = st.nextToken();
@@ -210,11 +228,26 @@ public class RicezioneServer extends Thread {
 							String destinatario = st.nextToken();
 							int id = getID();
 							LinkedList<String> ll = new LinkedList<String>();
-							ll.add(mittente); 	ll.add(destinatario);
+							ll.add(mittente); 
+							ll.add(destinatario);
 							group.put(id, ll);
-							clients.get(destinatario).inviaMsg("mn:"+id+":"+mittente);
+							if (clients.containsKey(destinatario)) {
+								clients.get(destinatario).inviaMsg("mn:"+id+":"+mittente);
+								ll.add(destinatario);
+							}
+							else { // si tratta di un messaggio offline 
+								if (!nameUser.containsKey(destinatario)) {
+									nameUser.put(destinatario, new LinkedList<Integer>());
+									nameUser.get(destinatario).add(id);
+									offlineMes.put(id, new LinkedList<String>());
+								}
+								else {
+									nameUser.get(destinatario).add(id);
+									offlineMes.put(id, new LinkedList<String>());
+								}
+								
+							}
 							clients.get(mittente).inviaMsg("^"+id);
-							
 						}
 						else if (messaggio.charAt(0) =='l') {
 							StringTokenizer st = new StringTokenizer(messaggio, "^");
@@ -235,9 +268,18 @@ public class RicezioneServer extends Thread {
 							int id = Integer.parseInt(st.nextToken());
 							String mitt = st.nextToken();
 							String message = st.nextToken();
-							for (String i : group.get(id))
-								if (!i.equals(mitt))
+							for (String i : group.get(id)) {
+								if (!i.equals(mitt) && clients.containsKey(i))
 									clients.get(i).inviaMsg("m:" + id + ":" + mitt + ":" + message );
+								if (!clients.containsKey(i)){
+									offlineMes.get(id).addLast(message);
+									/* Un utente invia un messaggio off ad un altro utente. L'altro utente si collega e risponde (nella stessa conversazione)
+									 * però ora l'utente iniziale non è più online. Si genera errore perché viene aggiunto il messaggio nei messaggi offline 
+									 * con quell'id associato al secondo utente. Quindi sembrerà che il primo utente abbia risposto al secondo piuttosto che il contrario. 
+									 */
+								}
+							}
+							
 						}
 						
 						/* Fine gestione messaggi chat. */
@@ -341,5 +383,24 @@ public class RicezioneServer extends Thread {
 		}
 		
 	}
+		public Object[][] sendOff(String user) {
+			//Usare opportuni strumenti di mutua esclusione.
+			if (nameUser.containsKey(user)){
+			Object [][] off = new Object[nameUser.get(user).size()][2];
+			for (int i = 0; i<off.length; i++) {
+				int id = nameUser.get(user).get(i);
+				off[i][0] = id;
+				LinkedList<String> ll = new LinkedList<String>();
+				ll.addFirst(group.get(id).get(0)); // in prima posizione c'è il mittente
+				for (String m : offlineMes.get(id))
+					ll.addLast(m);
+				off[i][1] = ll;
+				offlineMes.remove(id);
+			}
+			nameUser.remove(user);
+			return off;
+			}
+			return null;
+		}
 }
 

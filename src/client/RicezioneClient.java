@@ -41,6 +41,7 @@ public class RicezioneClient extends Thread{
     			}
     			else{
     			jt.append(m+"\n");
+    			client.playSound();
     			status.setText("");
     			}
     		}

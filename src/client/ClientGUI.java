@@ -2,18 +2,20 @@ package client;
 
 
 import java.awt.BorderLayout;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.LayoutManager;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
@@ -34,7 +36,8 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.text.Keymap;
 
-import client.MainClient.AscoltatoreFinestra;
+import sun.audio.AudioPlayer;
+import sun.audio.AudioStream;
 
 
 @SuppressWarnings("serial")
@@ -142,6 +145,13 @@ public class ClientGUI extends JFrame{
     public void append (String s) {
     	ricezione.append(s);
     }
+    public void playSound() {
+    	try {
+    		InputStream in = new FileInputStream("sounds/sound.wav");
+    		AudioStream au = new AudioStream(in);
+    		AudioPlayer.player.start(au);
+    	} catch (Exception e) {e.printStackTrace();}
+    	}
 
 	class Ascoltatore implements ActionListener {
 

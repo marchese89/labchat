@@ -24,7 +24,6 @@ public class ServerGUI extends JFrame {
 	public ServerGUI() {
 
 		ActionListener al = new Ascoltatore();
-
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		Dimension d = kit.getScreenSize();
 		setLocation(d.width / 4, d.height / 4);

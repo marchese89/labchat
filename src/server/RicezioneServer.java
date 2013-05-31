@@ -128,12 +128,7 @@ public class RicezioneServer extends Thread {
 								}
 							else {
 								System.out.println("Il server riceve il messaggio ma la conversazione non è a due utenti!");
-							}/*
-							else{//il client è offline
-									if(!messaggiOffline.containsKey(destinatario))
-									messaggiOffline.put(destinatario, new LinkedList<String>());
-									messaggiOffline.get(destinatario).addLast(messaggio);
-								}*/
+							}
 						}
 						
 						/** Parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
@@ -142,7 +137,7 @@ public class RicezioneServer extends Thread {
 							int id = Integer.parseInt(st.nextToken());
 							String userToRemove = st.nextToken();
 							LinkedList<String> al = group.get(id);
-							if (!offlineMes.containsKey(id)) { // Se la conversazione non è una conversazione offline
+							if (!offlineMes.containsKey(id) && group.get(id).size()>2) { // Se la conversazione non è una conversazione offline ed è una conversazione di gruppo
 								for (String i : al){
 									if (!i.equals(userToRemove))
 									clients.get(i).inviaMsg("&"+id+"&"+userToRemove);
@@ -290,31 +285,7 @@ public class RicezioneServer extends Thread {
 							
 						}
 						
-						/* Fine gestione messaggi chat. */
-						
-						/**
-						
-						else if (messaggio.charAt(0)=='M'){// gestore dei messaggi
-						st = new StringTokenizer(messaggio,"M:");
-						String dest = st.nextToken();
-						String msg = st.nextToken();
-						
-						if (dest.equals("server")) {
-							jt.append("Il Client " + j + " ha scritto:\n" + msg
-									+ "\n");
-						} else {
-							if(clients.containsKey(dest)){
-							clients.get(dest).inviaMsg(
-									j + ":" + msg);
-							}else{//il client è offline
-								if(!messaggiOffline.containsKey(dest))
-								messaggiOffline.put(dest, new LinkedList<String>());
-								messaggiOffline.get(dest).addLast(j + ":" + msg);
-							}
-						}
-						}//se non è un messaggio di disconnessione 
-						*/
-						
+						/* Fine gestione messaggi chat. */						
 					}//se ci sono messaggi nella coda di ogni client
 				}//iterazione su tutte le chiavi
 			
@@ -409,7 +380,17 @@ public class RicezioneServer extends Thread {
 					ll.addLast(m);
 				off[i][1] = ll;
 			}
-			nameUser.remove(user);
+			LinkedList<Integer> ll = nameUser.remove(user);
+			boolean exist = false;
+			Set<String> key = nameUser.keySet();
+			for (Integer i : ll) {
+				for (String j : key) {
+					if (nameUser.get(j).contains(i)) exist = true;
+				}
+				if (!exist) offlineMes.remove(i);
+				exist = false;
+			}
+			
 			return off;
 			}
 			return null;

@@ -135,6 +135,7 @@ public class RicezioneServer extends Thread {
 									messaggiOffline.get(destinatario).addLast(messaggio);
 								}*/
 						}
+						
 						/** Parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
 						else if (messaggio.charAt(0)=='&'){
 							st = new StringTokenizer(messaggio,"&");
@@ -150,6 +151,7 @@ public class RicezioneServer extends Thread {
 							if (group.get(id).size()==0) group.remove(id);
 							}
 						}
+						
 						/** Fine parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
 						else if (messaggio.charAt(0)=='(' && messaggio.charAt(1)==':') {//invio la lista dei destinatari a partire dall'id.
 							st = new StringTokenizer(messaggio,"(:");
@@ -255,6 +257,7 @@ public class RicezioneServer extends Thread {
 							int id = Integer.parseInt(st.nextToken());
 							String userToAdd = st.nextToken();
 							for (String i: group.get(id))
+								if (clients.containsKey(i))
 								clients.get(i).inviaMsg("l;" + id + ";" + userToAdd);
 							StringBuilder sb = new StringBuilder();
 							for (String i: group.get(id))
@@ -272,10 +275,15 @@ public class RicezioneServer extends Thread {
 								if (!i.equals(mitt) && clients.containsKey(i))
 									clients.get(i).inviaMsg("m:" + id + ":" + mitt + ":" + message );
 								if (!clients.containsKey(i)){
-									offlineMes.get(id).addLast(message);
-									/* Un utente invia un messaggio off ad un altro utente. L'altro utente si collega e risponde (nella stessa conversazione)
-									 * però ora l'utente iniziale non è più online. Si genera errore perché viene aggiunto il messaggio nei messaggi offline 
-									 * con quell'id associato al secondo utente. Quindi sembrerà che il primo utente abbia risposto al secondo piuttosto che il contrario. 
+									if (!nameUser.containsKey(i)) { // La seguente condizione verrà spiegata in basso
+										LinkedList<Integer> ll = new LinkedList<Integer>();
+										ll.add(id);
+										nameUser.put(i, ll);
+									}
+									offlineMes.get(id).addLast(mitt + "-" +message);
+									/*
+									 * Quella condizione può accadere quando l'utente A invia un messaggio all'utente B. L'utente B si collega ma A ora non è più online.
+									 * Ora sarà A a dover essere inserito nella lista. Quella condizione fa questa cosa.
 									 */
 								}
 							}
@@ -391,11 +399,15 @@ public class RicezioneServer extends Thread {
 				int id = nameUser.get(user).get(i);
 				off[i][0] = id;
 				LinkedList<String> ll = new LinkedList<String>();
-				ll.addFirst(group.get(id).get(0)); // in prima posizione c'è il mittente
+				StringBuilder sb = new StringBuilder();
+				for (String x : group.get(id)) {
+					if (!x.equals(user))
+						sb.append(x + ",");
+				}
+				ll.addFirst(sb.toString());
 				for (String m : offlineMes.get(id))
 					ll.addLast(m);
 				off[i][1] = ll;
-				offlineMes.remove(id);
 			}
 			nameUser.remove(user);
 			return off;

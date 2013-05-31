@@ -279,7 +279,7 @@ import javax.swing.JOptionPane;
 					st = new StringTokenizer(line,"&");
 					int id = Integer.parseInt(st.nextToken());
 					String userToRemove = st.nextToken();
-					Set<String> al = usersgroup.get(id);
+					//Set<String> al = usersgroup.get(id); valutare se la rimozione di questa riga provoca errori.
 					usersgroup.get(id).remove(userToRemove);
 					finestreUtenti.get(id).append("L'utente " + userToRemove + " ha abbandonato la conversazione");
 					finestreUtenti.get(id).aggiorna();

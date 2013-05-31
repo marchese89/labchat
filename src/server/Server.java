@@ -9,7 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -111,10 +114,15 @@ public class Server implements Runnable {
 						for (int i = 0; i<off.length; i++) {
 							LinkedList<String> ll = (LinkedList<String>) off[i][1];
 							if (ll.size()>1) {
-							String mittente = ll.removeFirst();
-							t.inviaMsg("mn:"+off[i][0]+":"+mittente);
-							for (String j : ll)
-								t.inviaMsg("m:" + off[i][0] + ":" + mittente + ":" + j);
+								StringTokenizer mitlist = new StringTokenizer(ll.removeFirst(), ",");
+								while (mitlist.hasMoreTokens())
+									t.inviaMsg("mn:"+off[i][0]+":"+mitlist.nextToken());
+							for (String j : ll){
+								StringTokenizer st = new StringTokenizer(j,"-");
+								String mit = st.nextToken();
+								String mes = st.nextToken();
+								t.inviaMsg("m:" + off[i][0] + ":" + mit + ":" + mes);
+							}
 						}
 						}
 						}

@@ -35,9 +35,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
-
 import Utility.JListWithImages;
 import Utility.Security;
 
@@ -46,10 +46,10 @@ public class MainClient extends JFrame {
 
 	private JMenuItem connect, chatWith, disconnect, datiDimenticati,
 			iscriviti, aggiungiContatto, rimuoviContatto, listaContatti,
-			stileTesto, bloccaContatto, sbloccaContatto,aggiornaLista;
+			stileTesto, bloccaContatto, sbloccaContatto, aggiornaLista;
 	private JMenu suspendedRequest;
-	private JMenuItem [] users;
-
+	private JMenuItem[] users;
+	protected String usr;
 	private ActionListener al;
 	private WindowListener wl;
 	private Client cc;
@@ -66,16 +66,35 @@ public class MainClient extends JFrame {
 	private LinkedList<String> contatti;// i contatti che ho nella mia lista
 										// contatti
 	private LinkedList<String> utentiCheMiHannoBloccato;
-	private LinkedList<String> utentiCheHoBloccato, suspendedUser;
+	private LinkedList<String> suspendedUser;
+	private volatile LinkedList<String> utentiCheHoBloccato;
 	private Lock l;// per gestire la concorrenza su utentiCheMiHannoBloccato e
 					// su contatti
 	private JMenu opzioni;
 	private MainClient mc;
 	private Font font;
 	private Color colore;
+	private JPopupMenu Pmenu;
+	private JMenuItem chat, msgOff, lock, unlock, remove;
 
 	public MainClient() {
-
+		Pmenu = new JPopupMenu();
+		chat = new JMenuItem("Chatta");
+		chat.addMouseListener(new ActionJList(wordList));
+		Pmenu.add(chat);
+		msgOff = new JMenuItem("Invia messaggio offline");
+		msgOff.addMouseListener(new ActionJList(wordList));
+		Pmenu.add(msgOff);
+		lock = new JMenuItem("Blocca contatto");
+		lock.addMouseListener(new ActionJList(wordList));
+		Pmenu.add(lock);
+		unlock = new JMenuItem("Sblocca contatto");
+		unlock.addMouseListener(new ActionJList(wordList));
+		Pmenu.add(unlock);
+		remove = new JMenuItem("Rimuovi contatto");
+		remove.addMouseListener(new ActionJList(wordList));
+		Pmenu.add(remove);
+		Pmenu.addMouseListener(new ActionJList(wordList));
 		l = new ReentrantLock();
 		utentiCheMiHannoBloccato = new LinkedList<String>();
 
@@ -175,6 +194,50 @@ public class MainClient extends JFrame {
 
 	}// costruttore
 
+	private void contactRemove(String toRemove) {
+		cc.inviaMessaggio("R" + toRemove);
+		JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+	}
+
+	private void contactUnlock(String target) {
+		l.lock();
+		cc.getLockListaContatti().lock();
+		utentiCheHoBloccato = cc.getUtentiBloccati();
+		if (!utentiCheHoBloccato.contains(target))
+			JOptionPane.showMessageDialog(null, "Non Hai Bloccato il contatto");
+		else {
+			cc.inviaMessaggio("U" + target);
+			utentiCheHoBloccato.remove(target);
+			JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+		}
+		cc.getLockListaContatti().unlock();
+		l.unlock();
+	}
+
+	private void contactLock(String target) {
+		l.lock();
+		cc.getLockListaContatti().lock();
+		contatti = cc.getListaContatti();
+		LinkedList<String> listaContatti = new LinkedList<String>();
+		StringTokenizer st;
+		for (String i : contatti) {
+			st = new StringTokenizer(i, " ");
+			listaContatti.add(st.nextToken());
+		}
+		utentiCheHoBloccato = cc.getUtentiBloccati();
+		if (utentiCheHoBloccato.contains(target))
+			JOptionPane.showMessageDialog(null, "Utente già Bloccato");
+		else if (listaContatti.contains(target)) {
+			cc.inviaMessaggio("L" + target);// richiesta blocco contatto
+			utentiCheHoBloccato.add(target);
+			JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+		} else
+			JOptionPane.showMessageDialog(null,
+					"Contatto non presente nella Lita Contatti");
+		cc.getLockListaContatti().unlock();
+		l.unlock();
+	}
+
 	private void abilitaChat() {
 		chatWith.setEnabled(true);
 	}
@@ -210,15 +273,12 @@ public class MainClient extends JFrame {
 
 	public void chattaWith(String dest) {
 		l.lock();// per la linkedList utentiCheMiHannoBloccato
-		if (!utentiCheMiHannoBloccato.contains(dest)) 
+		if (!utentiCheMiHannoBloccato.contains(dest))
 			cc.addDest(dest, font, colore, false);
-		else 
+		else
 			// creiamo una finestra che non invia i messaggi
 			cc.addDest(dest, font, colore, true);
 		l.unlock();
-	}
-	public void chattaOff (String dest) {
-		
 	}
 
 	public class Ascoltatore implements ActionListener {
@@ -249,9 +309,10 @@ public class MainClient extends JFrame {
 						cc = new Client(nomeClient,
 								Security.cryptPassword(password), false);
 						cc.start();
+						utentiCheHoBloccato = cc.getUtentiBloccati();
 
 						AggiornaConnessi ac = new AggiornaConnessi(cc,
-								wordList, words);
+								wordList, words,utentiCheHoBloccato);
 						ac.start();
 						// per avere sempre aggiornata la lista dei contatti che
 						// ci hanno bloccato
@@ -271,7 +332,8 @@ public class MainClient extends JFrame {
 							rimuoviContatto.setEnabled(true);
 							setFont(font);
 							setForeground(colore);
-							JOptionPane.showMessageDialog(null, null,"connesso al server", 1);
+							JOptionPane.showMessageDialog(null, null,
+									"connesso al server", 1);
 						} else {
 							JOptionPane.showMessageDialog(null, null,
 									"Username e/o password Errati",
@@ -288,32 +350,37 @@ public class MainClient extends JFrame {
 							"nome utente nullo", JOptionPane.ERROR_MESSAGE);
 				}
 			}// if è stato premuto connect
-/*
-			if (e.getSource() == chatWith) {
-				String dest = cc.login();
-				chattaWith(dest);
-			}*/
-			
-			if (users!=null) {
-				for (int i = 0; i<users.length; i++) {
-					if (e.getSource()==users[i]) {
+			/*
+			 * if (e.getSource() == chatWith) { String dest = cc.login();
+			 * chattaWith(dest); }
+			 */
+
+			if (users != null) {
+				for (int i = 0; i < users.length; i++) {
+					if (e.getSource() == users[i]) {
 						String mittente = users[i].getText();
-						int ris = JOptionPane.showConfirmDialog
-						(null, "L'utente "+mittente+" vuole aggiungerti come contatto. Accetti?");
-						if(ris == JOptionPane.OK_OPTION){
-							cc.inviaMessaggio("[:Y:"+nomeClient+","+mittente);//conferma richiesta
+						int ris = JOptionPane
+								.showConfirmDialog(
+										null,
+										"L'utente "
+												+ mittente
+												+ " vuole aggiungerti come contatto. Accetti?");
+						if (ris == JOptionPane.OK_OPTION) {
+							cc.inviaMessaggio("[:Y:" + nomeClient + ","
+									+ mittente);// conferma richiesta
 							suspendedUser = cc.getSuspendedList();
 							initializeSuspendedUser();
 						}
-						if(ris == JOptionPane.NO_OPTION){
-							cc.inviaMessaggio("[:N:"+nomeClient+","+mittente);//conferma richiesta
+						if (ris == JOptionPane.NO_OPTION) {
+							cc.inviaMessaggio("[:N:" + nomeClient + ","
+									+ mittente);// conferma richiesta
 							suspendedUser = cc.getSuspendedList();
 							initializeSuspendedUser();
 						}
 					}
 				}
 			}
-			
+
 			if (e.getSource() == datiDimenticati) {
 				String ip = JOptionPane.showInputDialog("Inserisci indirizzo");
 				String user = JOptionPane
@@ -373,9 +440,10 @@ public class MainClient extends JFrame {
 					contatti = cc.getListaContatti();
 					if (!contatti.contains(nomeContatto)
 							&& (!nomeContatto.equals(nomeClient))) {
-						cc.inviaMessaggio("A:" + nomeClient +"," + nomeContatto);// richiesta
-																// aggiunta
-																// contatto
+						cc.inviaMessaggio("A:" + nomeClient + ","
+								+ nomeContatto);// richiesta
+						// aggiunta
+						// contatto
 						JOptionPane
 								.showMessageDialog(null, "Richiesta Inviata");
 					} else {
@@ -401,9 +469,7 @@ public class MainClient extends JFrame {
 			if (e.getSource() == rimuoviContatto) {
 				String toRemove = JOptionPane
 						.showInputDialog("Nome Contatto da Rimuovere");
-				cc.inviaMessaggio("R" + toRemove);// richiesta cancellazione
-													// contatto
-				JOptionPane.showMessageDialog(null, "Richiesta Inviata");
+				contactRemove(toRemove);
 			}
 			if (e.getSource() == stileTesto) {
 				PannelloFont pf = new PannelloFont(mc);
@@ -415,42 +481,13 @@ public class MainClient extends JFrame {
 			if (e.getSource() == bloccaContatto) {
 				String target = JOptionPane
 						.showInputDialog("Contatto da Bloccare");
-				l.lock();
-				cc.getLockListaContatti().lock();
-				contatti = cc.getListaContatti();
-				LinkedList<String> listaContatti = new LinkedList<String>();
-				StringTokenizer st;
-				for (String i : contatti) {
-					st = new StringTokenizer(i, " ");
-					listaContatti.add(st.nextToken());
-				}
-				utentiCheHoBloccato = cc.getUtentiBloccati();
-				if (utentiCheHoBloccato.contains(target))
-					JOptionPane.showMessageDialog(null, "Utente già Bloccato");
-				else if (listaContatti.contains(target)) {
-					cc.inviaMessaggio("L" + target);// richiesta blocco contatto
-					JOptionPane.showMessageDialog(null, "Richiesta Inviata");
-				} else
-					JOptionPane.showMessageDialog(null,
-							"Contatto non presente nella Lita Contatti");
-				cc.getLockListaContatti().unlock();
-				l.unlock();
+				contactLock(target);
 			}
 			if (e.getSource() == sbloccaContatto) {
 				String target = JOptionPane
 						.showInputDialog("Contatto da Sbloccare");
-				l.lock();
-				cc.getLockListaContatti().lock();
-				utentiCheHoBloccato = cc.getUtentiBloccati();
-				if (!utentiCheHoBloccato.contains(target))
-					JOptionPane.showMessageDialog(null,
-							"Non Hai Bloccato il contatto");
-				else {
-					cc.inviaMessaggio("U" + target);
-					JOptionPane.showMessageDialog(null, "Richiesta Inviata");
-				}
-				cc.getLockListaContatti().unlock();
-				l.unlock();
+				contactUnlock(target);
+
 			}
 
 		}// actionPerformed
@@ -495,26 +532,92 @@ public class MainClient extends JFrame {
 		}
 
 		public void mouseClicked(MouseEvent e) {
-			
 			// Da modificare togliendo la parte che non serve.
 			if (e.getClickCount() == 2) {
 				int index = list.locationToIndex(e.getPoint());
-				if (index >= 0){
-				ListModel dlm = list.getModel();
-				Object item = dlm.getElementAt(index);
-				list.ensureIndexIsVisible(index);
-				JPanel x = (JPanel) item;
-				JLabel l = (JLabel)x.getComponent(1);
-				JLabel icoL = (JLabel)x.getComponent(0);
-				ImageIcon im = (ImageIcon) icoL.getIcon();
-				//if (im.toString().contains("online")) //se l'utente è online 
-				chattaWith(l.getText());
-				//else {
-					//chattaOff(l.getText());
-				//}
+				if (index >= 0) {
+					ListModel dlm = list.getModel();
+					Object item = dlm.getElementAt(index);
+					list.ensureIndexIsVisible(index);
+					JPanel x = (JPanel) item;
+					JLabel l = (JLabel) x.getComponent(1);
+					JLabel icoL = (JLabel) x.getComponent(0);
+					ImageIcon im = (ImageIcon) icoL.getIcon();
+					// if (im.toString().contains("online")) //se l'utente è
+					// online
+					chattaWith(l.getText());
+					// else {
+					// chattaOff(l.getText());
+					// }
 				}
 			}
 		}
-	}
 
+		public void mouseReleased(MouseEvent e) {
+			if (e.getButton() == MouseEvent.BUTTON3) {
+				int index = list.locationToIndex(e.getPoint());
+				if (index >= 0) {
+					ListModel dlm = list.getModel();
+					Object item = dlm.getElementAt(index);
+					list.ensureIndexIsVisible(index);
+					JPanel x = (JPanel) item;
+					JLabel l = (JLabel) x.getComponent(1);
+					usr = new String(l.getText());
+					if (utentiCheHoBloccato != null
+							&& utentiCheHoBloccato.contains(usr)) {
+						chat.setEnabled(false);
+						msgOff.setEnabled(false);
+						lock.setEnabled(false);
+						unlock.setEnabled(true);
+						remove.setEnabled(true);
+					} else {
+						if (cc.isOnline(usr)) {
+							chat.setEnabled(true);
+							msgOff.setEnabled(false);
+							lock.setEnabled(true);
+							unlock.setEnabled(false);
+							remove.setEnabled(true);
+						} else {
+							chat.setEnabled(false);
+							msgOff.setEnabled(true);
+							lock.setEnabled(true);
+							unlock.setEnabled(false);
+							remove.setEnabled(true);
+						}
+					}
+					Pmenu.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+			if (e.getSource() == chat) {
+				if (usr != null) {
+					chattaWith(usr);
+					usr = null;
+				}
+			}
+			if (e.getSource() == msgOff) {
+				if (usr != null) {
+					chattaWith(usr);
+					usr = null;
+				}
+			}
+			if (e.getSource() == lock) {
+				if (usr != null) {
+				contactLock(usr);
+				usr = null;
+				}
+			}
+			if (e.getSource() == unlock) {
+				if (usr != null) {
+				contactUnlock(usr);
+				usr = null;
+				}
+			}
+			if (e.getSource() == remove) {
+				if (usr != null) {
+				contactRemove(usr);
+				usr = null;
+			}
+		}
+	}
+	}
 }

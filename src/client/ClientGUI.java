@@ -125,7 +125,6 @@ public class ClientGUI extends JFrame{
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		setTitle("Conversazione con "+dest.toString());
-	    setVisible(true);
 	    rc = new RicezioneClient(cc, ricezione,id,statusLabel,this);
 	    rc.start();
        

@@ -60,7 +60,9 @@ public class ServerGUI extends JFrame {
 		t.start();
 
 	}
-
+	public void append (String s)  {
+		ricezione.append(s);
+	}
 	public static void main(String[] args) {
 
 		JFrame f = new ServerGUI();

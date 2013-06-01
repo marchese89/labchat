@@ -58,6 +58,14 @@ import javax.swing.JOptionPane;
 		public void sendMessage (int id, String message){
 			inviaMessaggio("m;"+id+";"+nomeClient+";"+message);
 		}
+		public boolean isOnline (String user){
+			l.lock();
+			boolean flag = false;
+			if (utentiConnessi!=null)
+			flag = utentiConnessi.contains(user);
+			l.unlock();
+			return flag;
+		}
 		public void addDest(String dest, Font f, Color c, boolean ghost) { 
 			inviaMessaggio("ri^"+nomeClient+"^"+dest);
 			try {
@@ -74,6 +82,7 @@ import javax.swing.JOptionPane;
 			messaggi.put(ID, new LinkedList<String>());
 			ClientGUI f1 = new ClientGUI(this,ll,ghost, ID,nomeClient);
 			finestreUtenti.put(ID, f1);
+			finestreUtenti.get(ID).setVisible(true);
 			ID = -1;
 			System.out.println("aggiunto un client");
 			}

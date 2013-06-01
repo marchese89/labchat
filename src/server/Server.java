@@ -46,7 +46,7 @@ public class Server implements Runnable {
        // connessione al DB
 		try {
 			conn = getConnection();
-			System.out.println("Connessione DB Stabilita");
+			jt.append("Connessione DB Stabilita \n");
 			// stat = conn.createStatement();
 		} catch (SQLException e1) {
 			e1.printStackTrace();
@@ -62,13 +62,13 @@ public class Server implements Runnable {
 			boolean restorePw = false;
 			Socket incoming;
 			try {
-				System.out.println("Entro nel while true del Server");
+				jt.append("Entro nel while true del Server");
 				incoming = s.accept();
-				t = new GestoreClient(incoming,conn);
+				t = new GestoreClient(incoming,conn,jt);
 				t.start();
 				l.lock();
 				while (!t.nomeClientPronto()) {
-					System.out.println("While 1 : Server.java");
+					jt.append("While 1 : Server.java \n");
 				}
 				if (t.forgetPassword()){
 					restorePw = true;
@@ -82,7 +82,7 @@ public class Server implements Runnable {
 						forgetStatement.setString(1, sha1Pass);
 						forgetStatement.setString(2, name);
 						forgetStatement.setString(3, email);
-						System.out.println(forgetStatement.toString());
+						jt.append(forgetStatement.toString()+"\n");
 						res = forgetStatement.executeUpdate();
 					}
 					catch (Exception e){}
@@ -98,11 +98,11 @@ public class Server implements Runnable {
 					}
 				}
 				while (!t.passwordPronta() && !restorePw) {
-					System.out.println("While 2 : Server.java");
+					jt.append("While 2 : Server.java \n");
 					restorePw = false;
 				}
 				if (!t.eNuovo()) {
-					System.out.println("non è un utente nuovo");
+					jt.append("non è un utente nuovo \n");
 					boolean pwBuona = verificaPass();
 					if (pwBuona) {
 						clients.put(t.getNomeClient(), t);
@@ -134,7 +134,7 @@ public class Server implements Runnable {
 				}// se è un utente già registrato
 				else {
 					while (!t.emailPronta()) {
-						System.out.println("While 3");
+						jt.append("While 3 \n");
 					}
 					
 					aggiungiUtente(t.getNomeClient(), t.getPassword(),
@@ -178,7 +178,7 @@ public class Server implements Runnable {
 			ResultSet result = statement.executeQuery();
 
 			while (result.next()) {
-				System.out.println("6");
+				jt.append("6 \n");
 				String password = result.getString(2);
 				if (password.equals(t.getPassword()))
 					pwCorretta = true;

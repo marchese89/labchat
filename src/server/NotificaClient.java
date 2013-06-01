@@ -34,7 +34,6 @@ public class NotificaClient extends Thread{
 	}
 	public void run(){
 		while (true){
-			//System.out.println("8");
 			l.lock();
 			
 			try {
@@ -61,7 +60,6 @@ public class NotificaClient extends Thread{
 					ResultSet result = ps.executeQuery();//tutti i contatti (on line e non)
 					
 					while (result.next()) {
-						//System.out.println("8");
 						utentiAmici.addLast(result.getString(2));
 						
 					}
@@ -103,7 +101,6 @@ public class NotificaClient extends Thread{
 					ResultSet userLocked = utentiBloccati.executeQuery();
 					//aggiorniamo la lista degli utenti amci con la notifica di blocco
 					while (result.next()) {
-						//System.out.println("9");
 						int bloccato_da = result.getInt(3);
 						if(bloccato_da ==0)//notifichiamo al client se è stato bloccato
 						utentiAmici.addLast(result.getString(2)+" f");//non bloccato	
@@ -112,7 +109,6 @@ public class NotificaClient extends Thread{
 					}
 					//aggiorniamo la lista degli utenti bloccati dal singolo utente
 					while(userLocked.next()){
-						System.out.println("10");
 						lockedUsers.addLast(userLocked.getString(1));
 					}
 					//inviamo all'utente i la lista dei contatti che ha bloccato

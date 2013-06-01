@@ -1,5 +1,6 @@
 package server;
 
+import java.awt.TextArea;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,6 +10,8 @@ import java.sql.Connection;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.StringTokenizer;
+
+import javax.swing.JTextArea;
 
 /**
  * 
@@ -29,9 +32,11 @@ public class GestoreClient extends Thread {
     private boolean emailPronta;
     private boolean utenteNuovo, forgetPassword;
     private Connection con ;
+    private JTextArea g;
   
     
-	public GestoreClient(Socket i, Connection conn) {
+	public GestoreClient(Socket i, Connection conn, JTextArea g) {
+		this.g = g;
 		this.con = conn;
 		incoming = i;
 		nomeClientPronto = false;
@@ -56,7 +61,7 @@ public class GestoreClient extends Thread {
 				while (true) {
 					if (in.hasNextLine()) {
 						String s = in.nextLine();
-						System.out.println(s+ " da gestore client");
+						g.append(s+ " da gestore client \n");
 						if(s.charAt(0)=='N'){
 							utenteNuovo = true;
 							StringTokenizer st0 = new StringTokenizer(s,"N:");
@@ -85,7 +90,6 @@ public class GestoreClient extends Thread {
 							nomeClientPronto = true;
 							password = st.nextToken();
 							passwordPronta = true;
-							System.out.println("GestoreClient riceve il messaggio");
 						} else {
 							msg.addLast(s);
 						}

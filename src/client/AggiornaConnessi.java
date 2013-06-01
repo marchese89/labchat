@@ -2,9 +2,8 @@ package client;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+
 import javax.swing.JList;
 import javax.swing.JPanel;
 /**
@@ -18,15 +17,14 @@ public class AggiornaConnessi extends Thread{
    private JList<String> lista;
    private Vector utenti;
    private Client cc;
-   private volatile LinkedList<String> contatti, utentiConnessi,utentiCheHoBloccato,
-                                       utentiCheMiHannoBloccato;
-
+   private volatile LinkedList<String> contatti, utentiConnessi,utentiCheHoBloccato,utentiCheMiHannoBloccato;
    
-   public AggiornaConnessi(Client cc,JList<String> lista,Vector utenti){
+   public AggiornaConnessi(Client cc,JList<String> lista,Vector utenti, LinkedList<String> userLocked){
 	   this.lista = lista;
 	   this.utenti = utenti;
 	   this.cc = cc;
 	   utentiCheMiHannoBloccato = new LinkedList<String>();
+	   utentiCheHoBloccato = userLocked;
    }
    
    public synchronized void run(){
@@ -56,7 +54,13 @@ public class AggiornaConnessi extends Thread{
 					  * alla verifica di un utente bloccato o meno (f / t).
 					  */
 					 JPanel jp1 = new JPanel();
-					 ImageIcon icon = utentiConnessi.contains(i) ? new ImageIcon("images/icon_online.gif") : new ImageIcon("images/icon_offline.gif");
+					 ImageIcon icon;
+					 if (utentiCheHoBloccato!= null && utentiCheHoBloccato.contains(i)) {
+						 icon = new ImageIcon("images/icon_locked.gif");
+						 System.out.println(utentiCheHoBloccato.toString());
+					 }
+					 else
+						 icon = utentiConnessi.contains(i) ? new ImageIcon("images/icon_online.gif") : new ImageIcon("images/icon_offline.gif");
 					 JLabel x = new JLabel(icon);
 					 JLabel y = new JLabel(i);
 					 jp1.add(x);

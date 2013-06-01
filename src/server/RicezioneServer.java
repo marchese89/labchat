@@ -81,11 +81,11 @@ public class RicezioneServer extends Thread {
 				for (String j : chiavi) {
 					
 					if (clients.get(j).ciSonoMsg()) {
+						jt.append(j+"\n");
 						String messaggio = clients.get(j).riceviMsg();
 						if (messaggio.equals("disconnect")){//messaggio di disconnessione
 							chiavi.remove(j);
 							clients.remove(j);
-							//System.out.println("l'utente "+j+" si è disconnesso");
 							break;
 						}
 						else if(messaggio.charAt(0)=='U'){
@@ -120,15 +120,19 @@ public class RicezioneServer extends Thread {
                             String mit = st.nextToken();//rimuoviamo il mittente
 							st.nextToken();//rimuoviamo l'ora
 							Integer id = Integer.parseInt(st.nextToken());
-							if(group.containsKey(id) && group.get(id).size()==2){
+							if(group.containsKey(id) && group.get(id).size()<=2){
 								mit = (!group.get(id).getFirst().equals(mit)) ? group.get(id).getFirst() : group.get(id).getLast();
-								System.out.println("Il server riceve il messaggio e lo rispedisce (Ricezione Server)");
+								jt.append("Il server riceve il messaggio e lo rispedisce (Ricezione Server) \n");
 								if (clients.containsKey(mit))
 								clients.get(mit).inviaMsg(messaggio);
 								}
-							else {
-								System.out.println("Il server riceve il messaggio ma la conversazione non è a due utenti!");
+							else if (!(group.get(id).size()==2)) {
+								jt.append("Il server riceve il messaggio ma la conversazione di id" + id + "  non è a due utenti! Ma è a: "+ group.get(id).size() + " utente/i " + "\n");
+								for (String i : group.get(id))
+									jt.append(i+", ");
+									jt.append("\n");
 							}
+							else {jt.append("Group non contiene quella conversazione \n");}
 						}
 						
 						/** Parte che si occupa della rimozione di un utente dalla conversazione quando chiude la finestra */
@@ -230,7 +234,6 @@ public class RicezioneServer extends Thread {
 							group.put(id, ll);
 							if (clients.containsKey(destinatario)) {
 								clients.get(destinatario).inviaMsg("mn:"+id+":"+mittente);
-								ll.add(destinatario);
 							}
 							else { // si tratta di un messaggio offline 
 								if (!nameUser.containsKey(destinatario)) {

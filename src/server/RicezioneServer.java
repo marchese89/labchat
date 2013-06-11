@@ -270,15 +270,21 @@ public class RicezioneServer extends Thread {
 							String mitt = st.nextToken();
 							String message = st.nextToken();
 							for (String i : group.get(id)) {
-								if (!i.equals(mitt) && clients.containsKey(i))
+								if (!i.equals(mitt) && clients.containsKey(i)) // è online.
 									clients.get(i).inviaMsg("m:" + id + ":" + mitt + ":" + message );
-								if (!clients.containsKey(i)){
+								if (!clients.containsKey(i)){ // se non è online
 									if (!nameUser.containsKey(i)) { // La seguente condizione verrà spiegata in basso
 										LinkedList<Integer> ll = new LinkedList<Integer>();
 										ll.add(id);
 										nameUser.put(i, ll);
 									}
+									if (offlineMes.containsKey(id)) { // Stessa cosa del commento in basso riferito ai messaggi piuttosto che all'utente.
 									offlineMes.get(id).addLast(mitt + "-" +message);
+									}
+									else {
+										offlineMes.put(id, new LinkedList<String>());
+										offlineMes.get(id).addLast(mitt+"-"+message);
+									}
 									/*
 									 * Quella condizione può accadere quando l'utente A invia un messaggio all'utente B. L'utente B si collega ma A ora non è più online.
 									 * Ora sarà A a dover essere inserito nella lista. Quella condizione fa questa cosa.

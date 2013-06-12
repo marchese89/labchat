@@ -78,7 +78,7 @@ public class ClientGUI extends JFrame{
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		Dimension d = kit.getScreenSize();
 		setLocation(d.width / 4, d.height / 4);
-		setSize(d.width / 2, d.height / 2);
+		setSize(d.width / 2, (d.height / 2)+20);
 		this.setLayout(new BorderLayout());
         //pannelli vari
 		JPanel jp = new JPanel();
@@ -132,12 +132,12 @@ public class ClientGUI extends JFrame{
 	public void setFont(Font f){
 		ricezione.setFont(f);
 		invio.setFont(f);
-		//repaint();
+		repaint();
 	}
     public void setForeground(Color c){
     	ricezione.setForeground(c);
     	invio.setForeground(c);
-    	//repaint();
+    	repaint();
     }
     
     public void append (String s) {

@@ -62,7 +62,7 @@ public class MainClient extends JFrame {
 	private ActionListener al;
 	private WindowListener wl;
 	private Client cc;
-	private HashMap<String, JFrame> finestreUtenti;
+	//private HashMap<String, JFrame> finestreUtenti;
 	// private NewClientGUI client;
 	// LinkedList<String> utentiConnessi;
 	Vector<JPanel> words;
@@ -112,7 +112,7 @@ public class MainClient extends JFrame {
 
 		this.mc = this;
 		contatti = new LinkedList<String>();
-		finestreUtenti = new HashMap<String, JFrame>();
+		//finestreUtenti = new HashMap<String, JFrame>();
 
 		al = new Ascoltatore();
 		wl = new AscoltatoreFinestra();
@@ -243,24 +243,28 @@ public class MainClient extends JFrame {
 	}
 
 	public void setFont(Font f) {
-		Set<String> utenti = finestreUtenti.keySet();
+		/*Set<String> utenti = finestreUtenti.keySet();
 		for (String i : utenti) {
 			finestreUtenti.get(i).setFont(f);
 		}
+		*/
 		if (!(cc == null))
 			cc.setFont(f);// modifichiamo il font delle finestre di NewClient
 		this.font = f;// modifichiamo il font delle future finestre
 	}
 
 	public void setForeground(Color c) {
+		/*
 		Set<String> utenti = finestreUtenti.keySet();
 		for (String i : utenti) {
 			finestreUtenti.get(i).setForeground(c);
 		}
+		*/
 		if (!(cc == null))
 			cc.setForeground(c);// modifichiamo il colore delle finestre di
 								// NewClient
 		this.colore = c;
+		
 	}
 
 	public static void main(String[] args) {

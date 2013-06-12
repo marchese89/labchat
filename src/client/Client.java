@@ -78,8 +78,11 @@ import javax.swing.JOptionPane;
 			usersgroup.put(ID, ll);
 			messaggi.put(ID, new LinkedList<String>());
 			ClientGUI f1 = new ClientGUI(this,ll,ghost, ID,nomeClient);
+
 			finestreUtenti.put(ID, f1);
 			finestreUtenti.get(ID).setVisible(true);
+			f1.setFont(f);
+			f1.setForeground(c);
 			ID = -1;
 			System.out.println("aggiunto un client");
 			}

@@ -74,7 +74,7 @@ public class AggiornaConnessi extends Thread{
 		}else{
 			utenti.clear();
 		    lista.setListData(utenti);
-			lista.repaint();
+		   	lista.repaint();
 			//System.out.println("ho azzerato la lista");
 		}
 		cc.getLockListaContatti().unlock();

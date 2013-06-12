@@ -68,10 +68,11 @@ public class NotificaClient extends Thread{
 					e.printStackTrace();
 				}
 				sb = new StringBuilder();
+				sb.append("*");
 				boolean almeno_uno = false;
 				for(String j: st){
 					if(utentiAmici.contains(j)){//inseriamo un utente se presente nella lista
-					sb.append("*"+j);//notifichiamo agli utenti connessi i propri contatti on line...
+					sb.append("¦"+j);//notifichiamo agli utenti connessi i propri contatti on line...
 					almeno_uno = true;
 					}
 				}
@@ -90,6 +91,7 @@ public class NotificaClient extends Thread{
 			}
 			//inviamo la lista dei contatti (interroghiamo prima il DB)
 			//inviamo anche la lista degli utenti che ogni utente ha bloccato
+			//inviamo la lista degli utenti che hanno bloccato il nostro utente target
 			s = clients.keySet();
 			for (String i:s){
 				utentiAmici = new LinkedList<String>();
@@ -114,8 +116,9 @@ public class NotificaClient extends Thread{
 					//inviamo all'utente i la lista dei contatti che ha bloccato
 					if(lockedUsers.size()>0){
 					sb = new StringBuilder();
+					sb.append("L");
 					for(String u: lockedUsers){
-						sb.append("L"+u);
+						sb.append("¦"+u);
 					}
 					clients.get(i).inviaMsg(sb.toString());
 					}else{
@@ -127,8 +130,9 @@ public class NotificaClient extends Thread{
 				}
 				if (utentiAmici.size()>0){
 			sb = new StringBuilder();
+			sb.append("[");
 			for(String j:utentiAmici)
-				sb.append("["+j);
+				sb.append("¦"+j);
 			clients.get(i).inviaMsg(sb.toString());
 			}//per ogni elemento nel KeySet
 			}

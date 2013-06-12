@@ -9,9 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -112,16 +110,17 @@ public class Server implements Runnable {
 						Object [][] off = ricez.sendOff(t.getNomeClient());
 						if (off !=null){
 						for (int i = 0; i<off.length; i++) {
+							@SuppressWarnings("unchecked")
 							LinkedList<String> ll = (LinkedList<String>) off[i][1];
 							if (ll.size()>1) {
 								StringTokenizer mitlist = new StringTokenizer(ll.removeFirst(), ",");
 								while (mitlist.hasMoreTokens())
-									t.inviaMsg("mn:"+off[i][0]+":"+mitlist.nextToken());
+									t.inviaMsg("mn¦"+off[i][0]+"¦"+mitlist.nextToken());
 							for (String j : ll){
 								StringTokenizer st = new StringTokenizer(j,"-");
 								String mit = st.nextToken();
 								String mes = st.nextToken();
-								t.inviaMsg("m:" + off[i][0] + ":" + mit + ":" + mes);
+								t.inviaMsg("m¦" + off[i][0] + "¦" + mit + "¦" + mes);
 							}
 						}
 						}
@@ -137,15 +136,19 @@ public class Server implements Runnable {
 						jt.append("While 3 \n");
 					}
 					
-					aggiungiUtente(t.getNomeClient(), t.getPassword(),
+					boolean res =aggiungiUtente(t.getNomeClient(), t.getPassword(),
 							t.getEmail());
+					if(res){
+						t.inviaMsg("correctlogin");
+					}else{
+						t.inviaMsg("failedlogin");
+					}
 				}
 				l.unlock();
 
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -153,7 +156,7 @@ public class Server implements Runnable {
 
 	}// run
 
-	private void aggiungiUtente(String username, String password, String email) {
+	private boolean aggiungiUtente(String username, String password, String email) {
 		try {
 			PreparedStatement statement = conn
 					.prepareStatement("INSERT INTO utentiregistrati(username,pass,email) VALUES(?,?,?);");
@@ -162,9 +165,10 @@ public class Server implements Runnable {
 			statement.setString(2, password);
 			statement.setString(3, email);
 			statement.execute();
-			
+			jt.append("query eseguita con successo\n");
+			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			return false;
 		}
 	}
 
@@ -194,7 +198,7 @@ public class Server implements Runnable {
 		String drivers = "com.mysql.jdbc.Driver";
 		String url = "jdbc:mysql://127.0.0.1:3306/utentichat";//
 		String username = "root";
-		String password = "root";
+		String password = ".jhwh888.";
 
 		System.setProperty("jdbc.drivers", drivers);
 

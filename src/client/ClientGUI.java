@@ -49,8 +49,7 @@ public class ClientGUI extends JFrame{
 	private JTextArea invio;
 	private Client cc;
 	private ActionListener al;
-	private String destinatario;
-    private RicezioneClient rc;
+	private RicezioneClient rc;
     private Focus f;
     private StringTokenizer st;
     private JLabel statusLabel;
@@ -168,6 +167,7 @@ public class ClientGUI extends JFrame{
 			}
 			else if (e.getSource() == addUser) {
 				LinkedList<String> ll = cc.utentiConnessi();
+				@SuppressWarnings("unused")
 				SelectUserPanel p = new SelectUserPanel(ll,nomeClient,cc, id, dest);
 			}
 

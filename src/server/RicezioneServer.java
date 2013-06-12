@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 
-import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
 public class RicezioneServer extends Thread {
@@ -89,8 +88,8 @@ public class RicezioneServer extends Thread {
 							break;
 						}
 						else if(messaggio.charAt(0)=='U'){
-							st = new  StringTokenizer(messaggio,"U");
-							String toUnlock = st.nextToken();
+					
+							String toUnlock = messaggio.substring(1);
 							try{
 								unlockStatement.setString(1, toUnlock);//utente da sbloccare
 								unlockStatement.setString(2, j);//utente che sblocca
@@ -99,8 +98,8 @@ public class RicezioneServer extends Thread {
 								e.printStackTrace();
 							}
 						}else if(messaggio.charAt(0)=='L'){
-							st = new  StringTokenizer(messaggio,"L");
-							String toLock = st.nextToken();
+						
+							String toLock = messaggio.substring(1);
 							try {
 								lockStatement.setString(1, toLock);//utente da bloccare
 								lockStatement.setString(2, j);//utente che blocca
@@ -108,7 +107,7 @@ public class RicezioneServer extends Thread {
 							} catch (SQLException e) {
 								e.printStackTrace();
 							}
-						}else if (messaggio.charAt(0) == 'ç') {
+						}else if (messaggio.charAt(0) == 'ç') {//Un client ha fatto una richiesta dei sui utenti in sospeso...
 							String client = messaggio.substring(2,messaggio.length());
 							getSuspendedList(client);
 						}
@@ -162,9 +161,8 @@ public class RicezioneServer extends Thread {
 							clients.get(mitt).inviaMsg("(:"+sb.toString());
 						}
 						else if(messaggio.charAt(0)=='A'){//messaggio addUser
-						       st = new StringTokenizer(messaggio.substring(2,messaggio.length()),",");
-						       String mittente = st.nextToken();
-						       String destinatario = st.nextToken();
+		
+						       String destinatario = messaggio.substring(1);
 						       try {
 						    	   //interroghiamo il database
 								statement.setString(1, destinatario);
@@ -172,12 +170,12 @@ public class RicezioneServer extends Thread {
 								while(result.next()){
 									String user = result.getString(1);
 									if(clients.containsKey(user)){
-										newSuspendedRequest(mittente,destinatario);
+										newSuspendedRequest(j,destinatario);
 									clients.get(user).inviaMsg("?"+j);
 									
 									}
 									else{
-										newSuspendedRequest(mittente,destinatario);
+										newSuspendedRequest(j,destinatario);
 									}
 										
 								}
@@ -186,8 +184,8 @@ public class RicezioneServer extends Thread {
 							}
 						}else if(messaggio.charAt(0)=='['){//inseriamo 2 utenti amici
 							boolean add = messaggio.charAt(2)=='Y';
-							st = new StringTokenizer(messaggio.substring(4,messaggio.length()),",");
-							String utente1 = st.nextToken();
+							st = new StringTokenizer(messaggio.substring(4),"¦");
+							String utente1 = j;
 							String utente2 = st.nextToken();
 							if (add){
 							try {
@@ -205,9 +203,9 @@ public class RicezioneServer extends Thread {
 							}
 							removeFromSuspended(utente1, utente2);
 						}else if(messaggio.charAt(0)=='R'){//messaggio rimozione utente
-							st = new StringTokenizer(messaggio,"R");
+							
 							String utente1=j;
-							String utente2 =st.nextToken();
+							String utente2 = messaggio.substring(1);
 							try{
 								//rimuoviamo le due coppie di utenti dal DB
 								removeStatement.setString(1, utente1);
@@ -233,7 +231,7 @@ public class RicezioneServer extends Thread {
 							ll.add(destinatario);
 							group.put(id, ll);
 							if (clients.containsKey(destinatario)) {
-								clients.get(destinatario).inviaMsg("mn:"+id+":"+mittente);
+								clients.get(destinatario).inviaMsg("mn¦"+id+"¦"+mittente);
 							}
 							else { // si tratta di un messaggio offline 
 								if (!nameUser.containsKey(destinatario)) {
@@ -249,29 +247,29 @@ public class RicezioneServer extends Thread {
 							}
 							clients.get(mittente).inviaMsg("^"+id);
 						}
-						else if (messaggio.charAt(0) =='l') {
-							StringTokenizer st = new StringTokenizer(messaggio, "^");
+						else if (messaggio.charAt(0) =='l') { // aggiungo un utente.
+							StringTokenizer st = new StringTokenizer(messaggio, "¦");
 							st.nextToken();
 							int id = Integer.parseInt(st.nextToken());
 							String userToAdd = st.nextToken();
 							for (String i: group.get(id))
 								if (clients.containsKey(i))
-								clients.get(i).inviaMsg("l;" + id + ";" + userToAdd);
+								clients.get(i).inviaMsg("l¦" + id + "¦" + userToAdd);
 							StringBuilder sb = new StringBuilder();
 							for (String i: group.get(id))
-								sb.append(":"+i);
-							clients.get(userToAdd).inviaMsg("mn:"+id+sb.toString());
+								sb.append("¦"+i);
+							clients.get(userToAdd).inviaMsg("mn¦"+id+sb.toString());
 							group.get(id).add(userToAdd);
 						}
 						else if (messaggio.charAt(0)=='m'){
-							StringTokenizer st = new StringTokenizer(messaggio, ";");
+							StringTokenizer st = new StringTokenizer(messaggio, "¦");
 							st.nextToken();
 							int id = Integer.parseInt(st.nextToken());
 							String mitt = st.nextToken();
 							String message = st.nextToken();
 							for (String i : group.get(id)) {
 								if (!i.equals(mitt) && clients.containsKey(i)) // è online.
-									clients.get(i).inviaMsg("m:" + id + ":" + mitt + ":" + message );
+									clients.get(i).inviaMsg("m¦" + id + "¦" + mitt + "¦" + message );
 								if (!clients.containsKey(i)){ // se non è online
 									if (!nameUser.containsKey(i)) { // La seguente condizione verrà spiegata in basso
 										LinkedList<Integer> ll = new LinkedList<Integer>();
@@ -304,20 +302,14 @@ public class RicezioneServer extends Thread {
 			try {
 				sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}	
 		}//while true
 	}
-		private void removeFromSuspended(String id, String applicant) {
+		private void removeFromSuspended(String user, String applicant) {
 			try {
-				PreparedStatement stringToId = conn.prepareStatement("SELECT id FROM utentiregistrati WHERE username = ?");
-				PreparedStatement remove = conn.prepareStatement("DELETE FROM suspended_request WHERE id = ? && applicant = ?");
-				stringToId.setString(1, id);
-				ResultSet r = stringToId.executeQuery();
-				r.next();
-				String final_id = r.getString(1);
-				remove.setString(1, final_id);
+				PreparedStatement remove = conn.prepareStatement("DELETE FROM suspended_request WHERE user = ? && applicant = ?");
+				remove.setString(1, user);
 				remove.setString(2, applicant);
 				remove.execute();
 					}
@@ -327,23 +319,16 @@ public class RicezioneServer extends Thread {
 		
 		private void newSuspendedRequest(String mittente, String destinatario) {
 			try {
-		PreparedStatement stringToId = conn.prepareStatement("SELECT id FROM utentiregistrati WHERE username = ?");
-		PreparedStatement verify = conn.prepareStatement("SELECT id FROM suspended_request WHERE id = ? && applicant = ?");
+
 		PreparedStatement insert = conn.prepareStatement("INSERT INTO suspended_request VALUES (?,?)");
-		stringToId.setString(1, destinatario);
-		ResultSet r = stringToId.executeQuery();
-		r.next();
-		String id = r.getString(1);
-		verify.setString(1,id);
-		verify.setString(2,mittente);
-		r = verify.executeQuery();
-		if (!r.next()){
-		insert.setString(1, id);
-		insert.setString(2,mittente);
+		insert.setString(1, destinatario);//chi riceve la richiesta
+		insert.setString(2,mittente);//chi ha fatto la richiesta 
 		insert.execute();
+			
 			}
+			catch (SQLException e) {
+				
 			}
-			catch (SQLException e) {}
 		
 	}
 		private void getSuspendedList(String client) {
@@ -351,19 +336,14 @@ public class RicezioneServer extends Thread {
 		 * Codice sicuramente funzionante (Testato);
 		 */
 		try {
-			PreparedStatement stringToId =conn.prepareStatement ("SELECT id FROM utentiregistrati WHERE username = ?");
-			PreparedStatement list =conn.prepareStatement ("SELECT applicant FROM suspended_request WHERE id = ?");
-			stringToId.setString(1, client);
-			ResultSet r = stringToId.executeQuery();
-			r.next();
-			String id = r.getString(1);
-			list.setString(1,id);
-			r = list.executeQuery();
+			PreparedStatement list =conn.prepareStatement ("SELECT applicant FROM suspended_request WHERE user = ?");
+			list.setString(1,client);
+			ResultSet r = list.executeQuery();
 			StringBuilder sb = new StringBuilder();
 			while (r.next()){
-				sb.append(r.getString(1)+",");
+				sb.append(r.getString(1)+"¦");
 			}
-			clients.get(client).inviaMsg("ç:"+sb.toString());
+			clients.get(client).inviaMsg("ç¦"+sb.toString());
 
 			
 		} catch (Exception e) {

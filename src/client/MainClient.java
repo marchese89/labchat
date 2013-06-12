@@ -2,11 +2,14 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -26,6 +29,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -38,15 +42,20 @@ import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+
+import sun.awt.RequestFocusController;
+import sun.awt.CausedFocusEvent.Cause;
 import Utility.JListWithImages;
 import Utility.Security;
 
 @SuppressWarnings("all")
 public class MainClient extends JFrame {
 
-	private JMenuItem connect, chatWith, disconnect, datiDimenticati,
-			iscriviti, aggiungiContatto, rimuoviContatto, listaContatti,
-			stileTesto, bloccaContatto, sbloccaContatto, aggiornaLista;
+	private JMenuItem connect, disconnect, datiDimenticati,
+			iscriviti, aggiungiContatto, listaContatti,
+			stileTesto, aggiornaLista;
 	private JMenu suspendedRequest;
 	private JMenuItem[] users;
 	protected String usr;
@@ -129,43 +138,33 @@ public class MainClient extends JFrame {
 		connect.addActionListener(al);
 		disconnect = new JMenuItem("Disconnetti");
 		disconnect.addActionListener(al);
-		chatWith = new JMenuItem("Chatta con");
-		chatWith.addActionListener(al);
+
 		aggiungiContatto = new JMenuItem("Aggiungi Contatto");
 		aggiungiContatto.addActionListener(al);
 		aggiungiContatto.setEnabled(false);
-		chatWith.setEnabled(false);// rendo non disponibile il tasto per
 		// chattare
 		suspendedRequest = new JMenu("Richieste in sospeso ()");
 		opzioni.add(suspendedRequest);
 		suspendedRequest.setEnabled(false);
 		disconnect.setEnabled(false);
-		rimuoviContatto = new JMenuItem("Rimuovi Contatto");
-		rimuoviContatto.addActionListener(al);
-		rimuoviContatto.setEnabled(false);
+
 		listaContatti = new JMenuItem("Lista Contatti");
 		listaContatti.addActionListener(al);
 		listaContatti.setEnabled(false);
 		stileTesto = new JMenuItem("Stile Testo");
 		stileTesto.addActionListener(al);
-		bloccaContatto = new JMenuItem("Blocca Contatto");
-		bloccaContatto.addActionListener(al);
-		sbloccaContatto = new JMenuItem("SbloccaContatto");
-		sbloccaContatto.addActionListener(al);
+
 		aggiornaLista = new JMenuItem("Aggiorna richieste");
 		opzioni.add(aggiornaLista);
 		aggiornaLista.addActionListener(al);
 		aggiornaLista.setEnabled(false);
 		fileMenu.add(connect);
 		fileMenu.add(disconnect);
-		fileMenu.add(chatWith);
 		aiuto.add(datiDimenticati);// se l'utente ha dimenticato i suoi dati
 		aiuto.add(iscriviti);// per la registrazione di un nuovo utente
 		opzioni.add(listaContatti);
 		opzioni.add(aggiungiContatto);
-		opzioni.add(rimuoviContatto);
-		opzioni.add(bloccaContatto);
-		opzioni.add(sbloccaContatto);
+
 		personalizza.add(stileTesto);
 		menuBar.add(fileMenu);
 		menuBar.add(aiuto);
@@ -175,9 +174,9 @@ public class MainClient extends JFrame {
 		wordList = new JListWithImages();// Lista utenti connessi
 		wordList.setListData(words);
 		wordList.addMouseListener(new ActionJList(wordList));
-		wordList.setMinimumSize(new Dimension(HEIGHT, WIDTH));
-		wordList.setPreferredSize(new Dimension(HEIGHT, WIDTH));
-		wordList.setVisibleRowCount(8);
+		//wordList.setMinimumSize(new Dimension(HEIGHT, WIDTH));
+		//wordList.setPreferredSize(new Dimension(HEIGHT, WIDTH));
+		//wordList.setVisibleRowCount(8);
 		scroll = new JScrollPane(wordList);
 		JPanel jp = new JPanel();
 		jp.add(scroll);
@@ -238,9 +237,6 @@ public class MainClient extends JFrame {
 		l.unlock();
 	}
 
-	private void abilitaChat() {
-		chatWith.setEnabled(true);
-	}
 
 	private void disabilitaConnetti() {
 		connect.setEnabled(false);
@@ -292,23 +288,36 @@ public class MainClient extends JFrame {
 			if (e.getSource() == connect) {
 				String ip = JOptionPane
 						.showInputDialog("inserire indirizzo ip");
-
+                 if (ip == null || ip == "")
+                	 return;
+                	 
+                
 				// login con user name e password
 
 				String nome = JOptionPane.showInputDialog("login con nome");
+				if (nome == null || nome == "")
+					return;
 				nomeClient = new String(nome);
 				if (!nomeClient.equals("")) {
-					JPasswordField pf = new JPasswordField();
-					int okCxl = JOptionPane.showConfirmDialog(null, pf,
+					final JPasswordField pf = new JPasswordField();
+					pf.addAncestorListener(new RequestFocusListener()); //diamo il focus
+				    //TODO
+                    int okCxl = JOptionPane.showConfirmDialog(null, pf,
 							"Password", JOptionPane.OK_CANCEL_OPTION,
 							JOptionPane.PLAIN_MESSAGE);
+
+					
 					if (okCxl == JOptionPane.OK_OPTION) {
+						
 						password = new String(pf.getPassword());
+						
 					}
-					if (!password.equals("")) {
+					
+					if (password != null && !password.equals("")) {
 						cc = new Client(nomeClient,
 								Security.cryptPassword(password), false);
 						cc.start();
+						mc.setTitle("Connesso Come: "+nomeClient);
 						utentiCheHoBloccato = cc.getUtentiBloccati();
 
 						AggiornaConnessi ac = new AggiornaConnessi(cc,
@@ -323,13 +332,13 @@ public class MainClient extends JFrame {
 						if (ris) {// se tutto ha funzionato
 							suspendedUser = cc.getSuspendedList();
 							initializeSuspendedUser();
-							abilitaChat();
+							
 							disabilitaConnetti();
 							disconnect.setEnabled(true);
 							aggiungiContatto.setEnabled(true);
 							listaContatti.setEnabled(true);
 							iscriviti.setEnabled(false);
-							rimuoviContatto.setEnabled(true);
+							datiDimenticati.setEnabled(false);
 							setFont(font);
 							setForeground(colore);
 							JOptionPane.showMessageDialog(null, null,
@@ -366,14 +375,12 @@ public class MainClient extends JFrame {
 												+ mittente
 												+ " vuole aggiungerti come contatto. Accetti?");
 						if (ris == JOptionPane.OK_OPTION) {
-							cc.inviaMessaggio("[:Y:" + nomeClient + ","
-									+ mittente);// conferma richiesta
+							cc.inviaMessaggio("[¦Y¦" + mittente);// conferma richiesta
 							suspendedUser = cc.getSuspendedList();
 							initializeSuspendedUser();
 						}
 						if (ris == JOptionPane.NO_OPTION) {
-							cc.inviaMessaggio("[:N:" + nomeClient + ","
-									+ mittente);// conferma richiesta
+							cc.inviaMessaggio("[¦N¦" + mittente);// nega richiesta
 							suspendedUser = cc.getSuspendedList();
 							initializeSuspendedUser();
 						}
@@ -400,36 +407,53 @@ public class MainClient extends JFrame {
 			}
 			if (e.getSource() == disconnect) {
 				cc.disconnetti();
-				chatWith.setEnabled(false);
+				
 				connect.setEnabled(true);
 				iscriviti.setEnabled(true);
+				datiDimenticati.setEnabled(true);
 				// cancello l'elenco degli utenti connessi
 				words = new Vector<JPanel>();
 				wordList.setListData(words);
 				wordList.repaint();
-
+                mc.setTitle("Main Client");
 			}
 			if (e.getSource() == iscriviti) {
 				String ip = JOptionPane
 						.showInputDialog("inserire indirizzo ip");
+				if( ip == null || ip =="")
+					return;
 				String user_name = JOptionPane.showInputDialog("username");
+				if(user_name == null || user_name == "")
+					return;
+				
 				String pass = "";
 				JPasswordField pf2 = new JPasswordField();
+				pf2.addAncestorListener(new RequestFocusListener());//diamo il focus
+				
 				int okCxl = JOptionPane.showConfirmDialog(null, pf2,
 						"Password", JOptionPane.OK_CANCEL_OPTION,
 						JOptionPane.PLAIN_MESSAGE);
+				//TODO
 				if (okCxl == JOptionPane.OK_OPTION) {
 					pass = new String(pf2.getPassword());
 				}
+				if(pass == null || pass == "")
+					return;
 				String email = JOptionPane.showInputDialog("Email");
+				if (email == null || email =="")
+					return;
 				cc = new Client(user_name, Security.cryptPassword(pass), email,
 						true);
 				cc.start();
 				boolean ris = cc.connetti(ip);
 				if (ris) {
-					JOptionPane.showMessageDialog(null,
-							"Iscrizione avvenuta con succeso");
+					JOptionPane.showMessageDialog(null,null,
+							"Iscrizione avvenuta con succeso",JOptionPane.PLAIN_MESSAGE);
+				}else{
+					JOptionPane.showMessageDialog(null,null,
+							"Iscrizione non riuscita",JOptionPane.ERROR_MESSAGE);
 				}
+				
 			}
 
 			if (e.getSource() == aggiungiContatto) {
@@ -437,13 +461,12 @@ public class MainClient extends JFrame {
 					String nomeContatto = JOptionPane
 							.showInputDialog("Nome Contatto");
 					l.lock();// sincronizzazione lista contatti
+					cc.getLockListaContatti().lock();
 					contatti = cc.getListaContatti();
 					if (!contatti.contains(nomeContatto)
 							&& (!nomeContatto.equals(nomeClient))) {
-						cc.inviaMessaggio("A:" + nomeClient + ","
-								+ nomeContatto);// richiesta
-						// aggiunta
-						// contatto
+						cc.inviaMessaggio("A"+ nomeContatto);// richiesta aggiunta contatto
+						
 						JOptionPane
 								.showMessageDialog(null, "Richiesta Inviata");
 					} else {
@@ -451,6 +474,7 @@ public class MainClient extends JFrame {
 								"Contatto già presente",
 								JOptionPane.ERROR_MESSAGE);
 					}
+					cc.getLockListaContatti().unlock();
 					l.unlock();
 				}// se è connesso
 			}
@@ -466,11 +490,7 @@ public class MainClient extends JFrame {
 				JFrame pC = new PannelloContatti(contatti, utentiBloccati);
 				l.unlock();
 			}
-			if (e.getSource() == rimuoviContatto) {
-				String toRemove = JOptionPane
-						.showInputDialog("Nome Contatto da Rimuovere");
-				contactRemove(toRemove);
-			}
+
 			if (e.getSource() == stileTesto) {
 				PannelloFont pf = new PannelloFont(mc);
 			}
@@ -478,17 +498,7 @@ public class MainClient extends JFrame {
 				suspendedUser = cc.getSuspendedList();
 				initializeSuspendedUser();
 			}
-			if (e.getSource() == bloccaContatto) {
-				String target = JOptionPane
-						.showInputDialog("Contatto da Bloccare");
-				contactLock(target);
-			}
-			if (e.getSource() == sbloccaContatto) {
-				String target = JOptionPane
-						.showInputDialog("Contatto da Sbloccare");
-				contactUnlock(target);
 
-			}
 
 		}// actionPerformed
 
@@ -621,3 +631,48 @@ public class MainClient extends JFrame {
 	}
 	}
 }
+
+
+
+class RequestFocusListener implements AncestorListener
+{
+	private boolean removeListener;
+
+	/*
+	 *  Convenience constructor. The listener is only used once and then it is
+	 *  removed from the component.
+	 */
+	public RequestFocusListener()
+	{
+		this(true);
+	}
+
+	/*
+	 *  Constructor that controls whether this listen can be used once or
+	 *  multiple times.
+	 *
+	 *  @param removeListener when true this listener is only invoked once
+	 *                        otherwise it can be invoked multiple times.
+	 */
+	public RequestFocusListener(boolean removeListener)
+	{
+		this.removeListener = removeListener;
+	}
+
+	@Override
+	public void ancestorAdded(AncestorEvent e)
+	{
+		JComponent component = e.getComponent();
+		component.requestFocusInWindow();
+
+		if (removeListener)
+			component.removeAncestorListener( this );
+	}
+
+	@Override
+	public void ancestorMoved(AncestorEvent e) {}
+
+	@Override
+	public void ancestorRemoved(AncestorEvent e) {}
+}
+

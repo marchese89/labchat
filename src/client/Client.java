@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -19,7 +18,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 	public class Client extends Thread{
@@ -53,10 +51,10 @@ import javax.swing.JOptionPane;
 		private int ID = -1;
 		
 		public void addUser (int id, String newuser){
-			inviaMessaggio("l^" + id +"^" + newuser);
+			inviaMessaggio("l¦" + id +"¦" + newuser);
 		}
 		public void sendMessage (int id, String message){
-			inviaMessaggio("m;"+id+";"+nomeClient+";"+message);
+			inviaMessaggio("m¦"+id+"¦"+nomeClient+"¦"+message);
 		}
 		public boolean isOnline (String user){
 			l.lock();
@@ -71,7 +69,6 @@ import javax.swing.JOptionPane;
 			try {
 				id.acquire();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			System.out.println(id + " ID");
@@ -105,7 +102,7 @@ import javax.swing.JOptionPane;
 		public String forgetPassword(String ip){
 			String res = null;
 			restorerConnection (ip); // da modificare
-			pr.println("§"+":"+nomeClient+":"+email);
+			pr.println("§"+"¦"+nomeClient+"¦"+email);
 			boolean end = false;
     		while(!end && s.hasNextLine()){
     			String result = s.nextLine();
@@ -129,10 +126,22 @@ import javax.swing.JOptionPane;
 			boolean risultato = false;
 			try{
 	    		if(nuovoUtente){//se ci stiamo registrando inviamo un mess speciale
-	    			pr.println("N"+":"+nomeClient+":"+password+":"+email);
-	    			risultato = true;
+	    			pr.println("N"+"¦"+nomeClient+"¦"+password+"¦"+email);
+	    			
+	    			boolean done = false;
+	    			while(!done && s.hasNextLine()){
+		    			String result = s.nextLine();
+		    			if(result.equals("correctlogin")){
+		    				done = true;
+		    			    risultato = true;
+		    			}
+		    			if(result.equals("failedlogin")){
+		    				done = true;
+		    				risultato = false;
+		    			}
+	    			}
 	    		}else{
-	    		pr.println("{"+nomeClient+"{"+password);
+	    		pr.println("{"+nomeClient+"¦"+password);
 	    		
 	    		boolean done = false;
 	    		while(!done && s.hasNextLine()){
@@ -191,16 +200,14 @@ import javax.swing.JOptionPane;
 			if(connesso){
 			boolean done = false;
 			while (!done && s.hasNextLine()) {
-				String line = s.nextLine();	/*
-				JOptionPane.showMessageDialog(null, null,
-						line,
-						JOptionPane.ERROR_MESSAGE);*/
+				String line = s.nextLine();	
+				
 				//stiamo ricevendo la lista degli utenti connessi
 				if(line.charAt(0)=='*'){
 					
-					st = new StringTokenizer(line,"*");
 				    l.lock();
 					utentiConnessi.clear();
+					st = new StringTokenizer(line.substring(1),"¦");
 					while(st.hasMoreTokens())
 						utentiConnessi.addLast(st.nextToken());
 					    
@@ -208,8 +215,8 @@ import javax.swing.JOptionPane;
 					
 				}else if(line.charAt(0)=='ç'){
 					suspendedUser = new LinkedList<String>();
-					String users = line.substring(2,line.length());
-					StringTokenizer st = new StringTokenizer(users, ",");
+					String users = line.substring(2);
+					StringTokenizer st = new StringTokenizer(users, "¦");
 					while (st.hasMoreTokens()){
 						suspendedUser.add(st.nextToken());
 					}
@@ -217,7 +224,7 @@ import javax.swing.JOptionPane;
 				}
 				else if(line.charAt(0)=='L'){//lista dei contatti che ho bloccato
 					
-					st = new StringTokenizer(line,"L");
+					st = new StringTokenizer(line.substring(1),"¦");
 					l.lock();
 					utentiCheHoBloccato.clear();
 					while(st.hasMoreTokens())
@@ -231,7 +238,7 @@ import javax.swing.JOptionPane;
 				else if(line.charAt(0)=='['){//messaggio lista contatti con blocchi e non
 					l.lock();
 					listaContatti.clear();
-					st = new StringTokenizer(line, "[");
+					st = new StringTokenizer(line.substring(1), "¦");
 					while(st.hasMoreTokens())
 						listaContatti.add(st.nextToken());
 					l.unlock();
@@ -241,7 +248,7 @@ import javax.swing.JOptionPane;
 				 * Parte modificata da bruno_scrivo : cambiare i caratteri di controllo
 				 */
 				else if (line.charAt(0)=='m'){ //ricevuto un nuovo messaggio
-					StringTokenizer st = new StringTokenizer(line, ":");
+					StringTokenizer st = new StringTokenizer(line, "¦"); //alt+221
 					st.nextToken();
 					int id = Integer.parseInt(st.nextToken());
 					String mittente = st.nextToken();
@@ -269,7 +276,7 @@ import javax.swing.JOptionPane;
 							finestreUtenti.put(id, new ClientGUI(this,temp,false,id,nomeClient));
 						}
 					finestreUtenti.get(id).setVisible(true);
-					messaggi.get(id).add(mittente + " ha scritto: " + messaggio);
+					messaggi.get(id).add(mittente + " ha scritto:\n " + messaggio);
 					}
 				}
 				else if (line.charAt(0)=='^') { //Fatto
@@ -294,7 +301,7 @@ import javax.swing.JOptionPane;
 					finestreUtenti.get(id).aggiorna();
 					}
 				else if (line.charAt(0)=='l'){ //Fatto. Il server invia al client un messaggio per aggiungere un utente alla conversazione
-					StringTokenizer st = new StringTokenizer(line,";");
+					StringTokenizer st = new StringTokenizer(line,"¦");
 					st.nextToken();
 					int id = Integer.parseInt(st.nextToken());
 					String addUser = st.nextToken();
@@ -401,7 +408,6 @@ import javax.swing.JOptionPane;
 				sem.acquire();
 				
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return suspendedUser;

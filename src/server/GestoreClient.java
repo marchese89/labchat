@@ -1,6 +1,5 @@
 package server;
 
-import java.awt.TextArea;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,13 +30,13 @@ public class GestoreClient extends Thread {
     private boolean nomeClientPronto;
     private boolean emailPronta;
     private boolean utenteNuovo, forgetPassword;
-    private Connection con ;
+    //private Connection con ;
     private JTextArea g;
   
     
 	public GestoreClient(Socket i, Connection conn, JTextArea g) {
 		this.g = g;
-		this.con = conn;
+		//this.con = conn;
 		incoming = i;
 		nomeClientPronto = false;
 		passwordPronta = false;
@@ -63,8 +62,8 @@ public class GestoreClient extends Thread {
 						String s = in.nextLine();
 						g.append(s+ " da gestore client \n");
 						if(s.charAt(0)=='N'){
+							StringTokenizer st0 = new StringTokenizer(s.substring(1),"¦");
 							utenteNuovo = true;
-							StringTokenizer st0 = new StringTokenizer(s,"N:");
 							nomeClient = st0.nextToken();
 							nomeClientPronto = true;
 							password = st0.nextToken();
@@ -77,7 +76,7 @@ public class GestoreClient extends Thread {
 						/*
 						*/
 						else if(s.charAt(0)=='§'){
-							StringTokenizer q = new StringTokenizer(s.substring(1,s.length()),":");
+							StringTokenizer q = new StringTokenizer(s.substring(1),"¦");
 							this.nomeClient = q.nextToken();
 							this.email = q.nextToken();
 							forgetPassword = true;
@@ -85,7 +84,7 @@ public class GestoreClient extends Thread {
 							nomeClientPronto = true;
 						}
 						else if (s.charAt(0) == '{') {//stiamo per leggere il nome del client
-							StringTokenizer st = new StringTokenizer(s, "{");
+							StringTokenizer st = new StringTokenizer(s.substring(1), "¦");
 							nomeClient = st.nextToken();
 							nomeClientPronto = true;
 							password = st.nextToken();

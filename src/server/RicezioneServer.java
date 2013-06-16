@@ -34,7 +34,8 @@ public class RicezioneServer extends Thread {
 	
 	private Connection conn;
 	private PreparedStatement statement,statementInsert,removeStatement,
-	                          lockStatement,unlockStatement;
+	                          lockStatement,unlockStatement,unsubscribe,
+	                          removeUser,cleanFriends,machPass,changePass;
 	private int id = 1; //Da modificare: gestire la chiusura di una chat. Altrimenti il numero di elementi dell'hashmap group sarà molto alto.
 	
 	private int getID () {
@@ -67,7 +68,16 @@ public class RicezioneServer extends Thread {
 			unlockStatement = conn.prepareStatement
 					("UPDATE utenti_amici SET bloccato_da = 0 WHERE utente1 = ? AND utente2 = ?;");
 			
-					
+			unsubscribe = conn.prepareStatement("SELECT * FROM utentiregistrati WHERE username = ? AND pass = ?;");
+			
+			removeUser = conn.prepareStatement("DELETE FROM utentiregistrati WHERE username = ?;");
+			
+			cleanFriends = conn.prepareStatement("DELETE FROM utenti_amici WHERE utente1 = ? OR utente2 = ?");
+			
+			machPass = conn.prepareStatement("SELECT pass FROM utentiregistrati WHERE username = ?;");
+			
+			changePass = conn.prepareStatement("UPDATE utentiregistrati SET pass = ? WHERE username = ?;");
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -163,21 +173,28 @@ public class RicezioneServer extends Thread {
 						else if(messaggio.charAt(0)=='A'){//messaggio addUser
 		
 						       String destinatario = messaggio.substring(1);
+						       //System.out.println("ricevuto messaggio aggiunta contatto: "
+						    		              //+destinatario);
 						       try {
 						    	   //interroghiamo il database
+						    	   
 								statement.setString(1, destinatario);
 								ResultSet result = statement.executeQuery();
-								while(result.next()){
+								if(result.next()){
 									String user = result.getString(1);
 									if(clients.containsKey(user)){
 										newSuspendedRequest(j,destinatario);
-									clients.get(user).inviaMsg("?"+j);
-									
+									    clients.get(user).inviaMsg("?"+j);
 									}
 									else{
 										newSuspendedRequest(j,destinatario);
 									}
-										
+									//il contatto da aggiungere esiste
+									clients.get(j).inviaMsg("Zy");	
+								}else{
+									//il contatto da aggiungere non esiste
+									//System.out.println("il contatto da aggiungere non esiste");
+									clients.get(j).inviaMsg("Zn");
 								}
 							} catch (SQLException e) {
 								e.printStackTrace();
@@ -288,6 +305,51 @@ public class RicezioneServer extends Thread {
 									 * Ora sarà A a dover essere inserito nella lista. Quella condizione fa questa cosa.
 									 */
 								}
+							}
+							
+						}else if(messaggio.charAt(0)=='D'){//disiscrizione
+							String pass = messaggio.substring(1);
+							try {
+								unsubscribe.setString(1, j);
+								unsubscribe.setString(2, pass);
+								ResultSet rs = unsubscribe.executeQuery();
+								cleanFriends.setString(1, j);
+								cleanFriends.setString(2, j);
+								if(rs.next()){
+									cleanFriends.execute();//cancella l'utente dalle liste amiche
+									removeUser.setString(1, j);
+									removeUser.execute();
+									clients.get(j).inviaMsg("dy");
+								}else{
+									clients.get(j).inviaMsg("dn");
+								}
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+							
+						}
+						else if(messaggio.charAt(0)=='C'){//cambio password//TODO
+							StringTokenizer st = new StringTokenizer(messaggio.substring(1),"¦");
+							String oldPass = st.nextToken();
+							String newPass = st.nextToken();
+							
+							try {
+								machPass.setString(1, j);//seleziona la pass a partire dallo user
+								ResultSet rs = machPass.executeQuery();
+								if(rs.next()){
+									//se la pass inserita è corretta...
+									if (oldPass.equals(rs.getString(1))){
+										changePass.setString(1, newPass);
+										changePass.setString(2, j);
+										changePass.execute();//modifichiamo la password
+										clients.get(j).inviaMsg("cy");//successo
+									}else{
+										clients.get(j).inviaMsg("cn");//insuccesso
+									}
+								}//non c'è l'else perchè la query ha sempre successo
+								 
+							} catch (SQLException e) {
+								e.printStackTrace();
 							}
 							
 						}

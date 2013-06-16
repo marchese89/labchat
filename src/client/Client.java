@@ -49,6 +49,34 @@ import javax.swing.JOptionPane;
 		private Semaphore id = new Semaphore(0);
 		private Set<String> temp = new HashSet<String>();
 		private int ID = -1;
+		private boolean esiste = false;//quando aggiungiamo un contatto ci dice se questo esiste
+		private Semaphore esistenza = new Semaphore(0);//ci blocchiamo per sapere se un contatto da aggiungere esiste
+		private boolean disCorretta = false;
+		private Semaphore dC = new Semaphore(0);//disiscrizione corretta
+		private boolean modPassOk = false;
+		private Semaphore modPass = new Semaphore(0);
+		
+		public boolean Disiscrizione(String pass){
+			inviaMessaggio("D"+pass);
+			try{
+				dC.acquire();
+			}catch(InterruptedException e){}
+			return disCorretta;
+		}
+		public boolean modificaPass(String oldPass,String newPass){
+			inviaMessaggio("C"+oldPass+"¦"+newPass);
+			try{
+				modPass.acquire();
+			}catch(InterruptedException e){}
+			return modPassOk;
+		}
+		public boolean aggiungiContatto(String target){
+			inviaMessaggio("A"+ target);
+			try{
+			esistenza.acquire();
+			}catch(InterruptedException e){}
+			return esiste;
+		}
 		
 		public void addUser (int id, String newuser){
 			inviaMessaggio("l¦" + id +"¦" + newuser);
@@ -329,6 +357,24 @@ import javax.swing.JOptionPane;
 					else {
 						System.out.println("L'altro client riceve il messaggio dal server ma la conversazione non sembra a due utenti");
 					}
+				}else if (line.charAt(0)=='Z'){//messaggio che conferma l'esistenza di un client
+					if(line.charAt(1)=='y'){
+						esiste = true;
+					}else{
+						esiste = false;
+					}
+					esistenza.release();
+				}
+				else if (line.charAt(0)=='d'){
+					disCorretta = line.charAt(1)=='y';
+					dC.release();
+				}
+				else if (line.charAt(0)=='c'){
+					if(line.charAt(1)=='y')
+						modPassOk = true;
+					else
+						modPassOk = false;
+					modPass.release();
 				}
 					
 			}// while

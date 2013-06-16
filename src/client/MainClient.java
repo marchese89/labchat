@@ -55,7 +55,7 @@ public class MainClient extends JFrame {
 
 	private JMenuItem connect, disconnect, datiDimenticati,
 			iscriviti, aggiungiContatto, listaContatti,
-			stileTesto, aggiornaLista;
+			stileTesto, aggiornaLista,disiscrizione,cambiaPass,indirizzoServer;
 	private JMenu suspendedRequest;
 	private JMenuItem[] users;
 	protected String usr;
@@ -85,8 +85,12 @@ public class MainClient extends JFrame {
 	private Color colore;
 	private JPopupMenu Pmenu;
 	private JMenuItem chat, msgOff, lock, unlock, remove;
-
+    private String indServer;
+	
 	public MainClient() {
+		
+		indServer = "localhost";
+		
 		Pmenu = new JPopupMenu();
 		chat = new JMenuItem("Chatta");
 		chat.addMouseListener(new ActionJList(wordList));
@@ -130,10 +134,16 @@ public class MainClient extends JFrame {
 		JMenu aiuto = new JMenu("Aiuto");
 		opzioni = new JMenu("Opzioni");
 		JMenu personalizza = new JMenu("Personalizza");
+		indirizzoServer = new JMenuItem("Indirizzo Server");
+		indirizzoServer.addActionListener(al);
 		datiDimenticati = new JMenuItem("Dati Dimenticati");
 		datiDimenticati.addActionListener(al);
 		iscriviti = new JMenuItem("Iscrizione");
 		iscriviti.addActionListener(al);
+		disiscrizione = new JMenuItem("Disiscriviti");
+		disiscrizione.addActionListener(al);
+		cambiaPass = new JMenuItem("Cambia Password");
+		cambiaPass.addActionListener(al);
 		connect = new JMenuItem("Connetti");
 		connect.addActionListener(al);
 		disconnect = new JMenuItem("Disconnetti");
@@ -160,11 +170,15 @@ public class MainClient extends JFrame {
 		aggiornaLista.setEnabled(false);
 		fileMenu.add(connect);
 		fileMenu.add(disconnect);
+		fileMenu.add(indirizzoServer);
 		aiuto.add(datiDimenticati);// se l'utente ha dimenticato i suoi dati
 		aiuto.add(iscriviti);// per la registrazione di un nuovo utente
+		aiuto.add(disiscrizione);
+		aiuto.add(cambiaPass);
+		disiscrizione.setEnabled(false);//disabilito queste 2 funzioni da principio
+		cambiaPass.setEnabled(false);
 		opzioni.add(listaContatti);
 		opzioni.add(aggiungiContatto);
-
 		personalizza.add(stileTesto);
 		menuBar.add(fileMenu);
 		menuBar.add(aiuto);
@@ -243,23 +257,14 @@ public class MainClient extends JFrame {
 	}
 
 	public void setFont(Font f) {
-		/*Set<String> utenti = finestreUtenti.keySet();
-		for (String i : utenti) {
-			finestreUtenti.get(i).setFont(f);
-		}
-		*/
+	
 		if (!(cc == null))
 			cc.setFont(f);// modifichiamo il font delle finestre di NewClient
 		this.font = f;// modifichiamo il font delle future finestre
 	}
 
 	public void setForeground(Color c) {
-		/*
-		Set<String> utenti = finestreUtenti.keySet();
-		for (String i : utenti) {
-			finestreUtenti.get(i).setForeground(c);
-		}
-		*/
+
 		if (!(cc == null))
 			cc.setForeground(c);// modifichiamo il colore delle finestre di
 								// NewClient
@@ -285,15 +290,9 @@ public class MainClient extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == wordList) {
-				System.out.println("ciao");
-			}
 
 			if (e.getSource() == connect) {
-				String ip = JOptionPane
-						.showInputDialog("inserire indirizzo ip");
-                 if (ip == null || ip == "")
-                	 return;
+				String ip = indServer;
                 	 
                 
 				// login con user name e password
@@ -303,9 +302,8 @@ public class MainClient extends JFrame {
 					return;
 				nomeClient = new String(nome);
 				if (!nomeClient.equals("")) {
-					final JPasswordField pf = new JPasswordField();
+					JPasswordField pf = new JPasswordField();
 					pf.addAncestorListener(new RequestFocusListener()); //diamo il focus
-				    //TODO
                     int okCxl = JOptionPane.showConfirmDialog(null, pf,
 							"Password", JOptionPane.OK_CANCEL_OPTION,
 							JOptionPane.PLAIN_MESSAGE);
@@ -321,7 +319,7 @@ public class MainClient extends JFrame {
 						cc = new Client(nomeClient,
 								Security.cryptPassword(password), false);
 						cc.start();
-						mc.setTitle("Connesso Come: "+nomeClient);
+						
 						utentiCheHoBloccato = cc.getUtentiBloccati();
 
 						AggiornaConnessi ac = new AggiornaConnessi(cc,
@@ -343,10 +341,13 @@ public class MainClient extends JFrame {
 							listaContatti.setEnabled(true);
 							iscriviti.setEnabled(false);
 							datiDimenticati.setEnabled(false);
+							disiscrizione.setEnabled(true);
+							cambiaPass.setEnabled(true);
 							setFont(font);
 							setForeground(colore);
 							JOptionPane.showMessageDialog(null, null,
 									"connesso al server", 1);
+							mc.setTitle("Connesso Come: "+nomeClient);
 						} else {
 							JOptionPane.showMessageDialog(null, null,
 									"Username e/o password Errati",
@@ -393,7 +394,7 @@ public class MainClient extends JFrame {
 			}
 
 			if (e.getSource() == datiDimenticati) {
-				String ip = JOptionPane.showInputDialog("Inserisci indirizzo");
+				String ip = indServer;
 				String user = JOptionPane
 						.showInputDialog("Inserisci il tuo nome utente");
 				String email = JOptionPane
@@ -415,6 +416,8 @@ public class MainClient extends JFrame {
 				connect.setEnabled(true);
 				iscriviti.setEnabled(true);
 				datiDimenticati.setEnabled(true);
+				disiscrizione.setEnabled(false);
+				cambiaPass.setEnabled(false);
 				// cancello l'elenco degli utenti connessi
 				words = new Vector<JPanel>();
 				wordList.setListData(words);
@@ -422,10 +425,7 @@ public class MainClient extends JFrame {
                 mc.setTitle("Main Client");
 			}
 			if (e.getSource() == iscriviti) {
-				String ip = JOptionPane
-						.showInputDialog("inserire indirizzo ip");
-				if( ip == null || ip =="")
-					return;
+				String ip = indServer;
 				String user_name = JOptionPane.showInputDialog("username");
 				if(user_name == null || user_name == "")
 					return;
@@ -437,7 +437,6 @@ public class MainClient extends JFrame {
 				int okCxl = JOptionPane.showConfirmDialog(null, pf2,
 						"Password", JOptionPane.OK_CANCEL_OPTION,
 						JOptionPane.PLAIN_MESSAGE);
-				//TODO
 				if (okCxl == JOptionPane.OK_OPTION) {
 					pass = new String(pf2.getPassword());
 				}
@@ -469,10 +468,14 @@ public class MainClient extends JFrame {
 					contatti = cc.getListaContatti();
 					if (!contatti.contains(nomeContatto)
 							&& (!nomeContatto.equals(nomeClient))) {
-						cc.inviaMessaggio("A"+ nomeContatto);// richiesta aggiunta contatto
+						boolean r =cc.aggiungiContatto(nomeContatto);// richiesta aggiunta contatto
 						
+						if(r)
 						JOptionPane
 								.showMessageDialog(null, "Richiesta Inviata");
+						else
+							JOptionPane.showMessageDialog(null, "L'utente non esiste",null,
+									JOptionPane.ERROR_MESSAGE);
 					} else {
 						JOptionPane.showMessageDialog(null, null,
 								"Contatto già presente",
@@ -502,7 +505,88 @@ public class MainClient extends JFrame {
 				suspendedUser = cc.getSuspendedList();
 				initializeSuspendedUser();
 			}
+			if(e.getSource() == disiscrizione){//rimuove l'utente dal DB
+				JPasswordField pf = new JPasswordField();
+				pf.addAncestorListener(new RequestFocusListener()); //diamo il focus
+                int okCxl = JOptionPane.showConfirmDialog(null, pf,
+						"Password", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE);
 
+				
+				if (okCxl == JOptionPane.OK_OPTION) {
+					
+					password = new String(pf.getPassword());
+					
+				}
+				boolean risultato = cc.Disiscrizione(Security.cryptPassword(password));
+				
+				if(risultato){
+					cc.disconnetti();
+					connect.setEnabled(true);
+					iscriviti.setEnabled(true);
+					datiDimenticati.setEnabled(true);
+					disiscrizione.setEnabled(false);
+					cambiaPass.setEnabled(false);
+					// cancello l'elenco degli utenti connessi
+					words = new Vector<JPanel>();
+					wordList.setListData(words);
+					wordList.repaint();
+	                mc.setTitle("Main Client");
+					JOptionPane.showMessageDialog(null, "Disiscrizione Avvenuta con Successo");
+				}
+				else
+					JOptionPane.showMessageDialog(null, "Disiscrizione non Avvenuta",null,JOptionPane.ERROR_MESSAGE);
+			
+				
+				
+				
+			}
+            if(e.getSource() == cambiaPass){
+            	String oldPw = null;
+                String newPw = null;
+            	//prendiamo la vecchia password
+            	JPasswordField pf = new JPasswordField();
+				pf.addAncestorListener(new RequestFocusListener()); //diamo il focus
+                int okCxl = JOptionPane.showConfirmDialog(null, pf,
+						"Vecchia Password", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE);
+
+				
+				if (okCxl == JOptionPane.OK_OPTION) {
+					
+					oldPw = new String(pf.getPassword());
+					
+				}
+				if(oldPw == null || oldPw =="")
+					return;
+				
+				JPasswordField pf2 = new JPasswordField();
+				pf2.addAncestorListener(new RequestFocusListener()); //diamo il focus
+                int okCxl2 = JOptionPane.showConfirmDialog(null, pf2,
+						"Nuova Password", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE);
+
+				
+				if (okCxl2 == JOptionPane.OK_OPTION) {
+					
+					newPw = new String(pf2.getPassword());
+					
+				}
+                if(newPw == null || newPw == "")
+                	return;
+                
+                boolean r =cc.modificaPass(Security.cryptPassword(oldPw), 
+                		                   Security.cryptPassword(newPw));
+                if(r){
+                	JOptionPane.showMessageDialog(null, "Password Modificata");
+                }else{
+                	JOptionPane.showMessageDialog(null, "Password non Modificata",null,JOptionPane.ERROR_MESSAGE);
+                }
+            	//TODO
+            }
+            if (e.getSource() == indirizzoServer){
+            	indServer = JOptionPane.showInputDialog(null, "Indirizzo del Server", indServer);
+            }
 
 		}// actionPerformed
 

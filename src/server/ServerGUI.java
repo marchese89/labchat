@@ -19,11 +19,9 @@ public class ServerGUI extends JFrame {
 	private JButton b;
 	private JScrollPane js;
 	private JTextArea ricezione;
-	private JTextArea invio;
 
 	public ServerGUI() {
 
-		ActionListener al = new Ascoltatore();
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		Dimension d = kit.getScreenSize();
 		setLocation(d.width / 4, d.height / 4);
@@ -31,27 +29,14 @@ public class ServerGUI extends JFrame {
 		this.setLayout(new BorderLayout());
 
 		JPanel jp = new JPanel();
-		ricezione = new JTextArea(15, 59);
+		ricezione = new JTextArea(21, 59);
 		ricezione.setEditable(false);// non si può modificare il testo da fuori
 		ricezione.setWrapStyleWord(true);// va a capo di parola in parola
 		ricezione.setLineWrap(true);// va a capo automaticamente
 		js = new JScrollPane(ricezione);
 		jp.add(js);
-		invio = new JTextArea(4, 50);
-		invio.setWrapStyleWord(true);// va a capo di parola in parola
-		invio.setLineWrap(true);// va a capo automaticamente
-		JScrollPane js2 = new JScrollPane(invio);
-		JPanel jp2 = new JPanel();
-		FlowLayout fl = new FlowLayout();
-		fl.setAlignment(FlowLayout.RIGHT);
-		jp2.setLayout(fl);
-		jp2.add(js2);
-		b = new JButton("Invia");
-		b.addActionListener(al);
-		jp2.add(b);
-		add(jp, BorderLayout.EAST);
-		add(jp2, BorderLayout.SOUTH);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        add(jp, BorderLayout.EAST);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Chat Server");
 		setVisible(true);
 
@@ -69,20 +54,5 @@ public class ServerGUI extends JFrame {
 
 	}
 
-	public class Ascoltatore implements ActionListener {
 
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == b) {
-				s.inviaMessaggio("server:" + invio.getText(), 1);// riga
-																	// modificata
-				ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
-				invio.setText("");
-				// jt.append("il listener funziona\n");
-				// System.out.println("il listener funziona");
-			}
-
-		}
-
-	}
 }

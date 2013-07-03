@@ -300,6 +300,11 @@ public class MainClient extends JFrame {
 				String nome = JOptionPane.showInputDialog("login con nome");
 				if (nome == null || nome == "")
 					return;
+				if(!stringControl(nome)){
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:("
+							,null,JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				nomeClient = new String(nome);
 				if (!nomeClient.equals("")) {
 					JPasswordField pf = new JPasswordField();
@@ -397,8 +402,18 @@ public class MainClient extends JFrame {
 				String ip = indServer;
 				String user = JOptionPane
 						.showInputDialog("Inserisci il tuo nome utente");
+				if(!stringControl(user)){
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:("
+							,null,JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				String email = JOptionPane
 						.showInputDialog("Inserisci la tua mail");
+				if(!stringControl(email)){
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:("
+							,null,JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				cc = new Client(user, email);
 				String ris = cc.forgetPassword(ip);
 				if (ris != null) {
@@ -429,7 +444,11 @@ public class MainClient extends JFrame {
 				String user_name = JOptionPane.showInputDialog("username");
 				if(user_name == null || user_name == "")
 					return;
-				
+				if(!stringControl(user_name)){
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:("
+							,null,JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				String pass = "";
 				JPasswordField pf2 = new JPasswordField();
 				pf2.addAncestorListener(new RequestFocusListener());//diamo il focus
@@ -445,6 +464,11 @@ public class MainClient extends JFrame {
 				String email = JOptionPane.showInputDialog("Email");
 				if (email == null || email =="")
 					return;
+				if(!stringControl(email)){
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:("
+							,null,JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 				cc = new Client(user_name, Security.cryptPassword(pass), email,
 						true);
 				cc.start();
@@ -463,6 +487,11 @@ public class MainClient extends JFrame {
 				if (cc.eConnesso()) {
 					String nomeContatto = JOptionPane
 							.showInputDialog("Nome Contatto");
+					if(!stringControl(nomeContatto)){
+						JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:("
+								,null,JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 					l.lock();// sincronizzazione lista contatti
 					cc.getLockListaContatti().lock();
 					contatti = cc.getListaContatti();
@@ -582,7 +611,7 @@ public class MainClient extends JFrame {
                 }else{
                 	JOptionPane.showMessageDialog(null, "Password non Modificata",null,JOptionPane.ERROR_MESSAGE);
                 }
-            	//TODO
+ 
             }
             if (e.getSource() == indirizzoServer){
             	indServer = JOptionPane.showInputDialog(null, "Indirizzo del Server", indServer);
@@ -607,6 +636,27 @@ public class MainClient extends JFrame {
 				}
 			}
 		}// initializeSuspendedUser
+		
+		private boolean stringControl(String s){
+			
+			char[] stringa = s.toCharArray();
+			for(char i:stringa){
+				switch(i){
+				case '¦':return false;
+				case '&':return false;
+				case '{':return false;
+				case '[':return false;
+				case '*':return false;
+				case '^':return false;
+				case 'ç':return false;
+				case '<':return false;
+				case ':':return false;
+				case '(':return false;
+                
+				}
+			}
+			return true;
+		}
 
 	}// classe interna
 

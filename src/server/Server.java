@@ -94,11 +94,9 @@ public class Server implements Runnable {
 					}
 				}
 				while (!t.passwordPronta() && !restorePw) {
-					jt.append("While 2 : Server.java \n");
 					restorePw = false;
 				}
 				if (!t.eNuovo()) {
-					jt.append("non è un utente nuovo \n");
 					boolean pwBuona = verificaPass();
 					if (pwBuona) {
 						clients.put(t.getNomeClient(), t);
@@ -131,7 +129,6 @@ public class Server implements Runnable {
 				}// se è un utente già registrato
 				else {
 					while (!t.emailPronta()) {
-						jt.append("While 3 \n");
 					}
 					
 					boolean res =aggiungiUtente(t.getNomeClient(), t.getPassword(),
@@ -163,7 +160,6 @@ public class Server implements Runnable {
 			statement.setString(2, password);
 			statement.setString(3, email);
 			statement.execute();
-			jt.append("query eseguita con successo\n");
 			return true;
 		} catch (SQLException e) {
 			return false;
@@ -180,7 +176,6 @@ public class Server implements Runnable {
 			ResultSet result = statement.executeQuery();
 
 			while (result.next()) {
-				jt.append("6 \n");
 				String password = result.getString(2);
 				if (password.equals(t.getPassword()))
 					pwCorretta = true;

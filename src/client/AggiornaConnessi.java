@@ -57,7 +57,6 @@ public class AggiornaConnessi extends Thread{
 					 ImageIcon icon;
 					 if (utentiCheHoBloccato!= null && utentiCheHoBloccato.contains(i)) {
 						 icon = new ImageIcon("images/icon_locked.gif");
-						 System.out.println(utentiCheHoBloccato.toString());
 					 }
 					 else if (utentiCheMiHannoBloccato.contains(i))
 						 icon = new ImageIcon("images/icon_offline.gif");
@@ -77,7 +76,6 @@ public class AggiornaConnessi extends Thread{
 			utenti.clear();
 		    lista.setListData(utenti);
 		   	lista.repaint();
-			//System.out.println("ho azzerato la lista");
 		}
 		cc.getLockListaContatti().unlock();
 	   }//if è connesso

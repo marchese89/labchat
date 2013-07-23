@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
 public class RicezioneServer extends Thread {
@@ -81,6 +82,8 @@ public class RicezioneServer extends Thread {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		try{
+			
 		
 		while (true) {
 			l.lock();
@@ -361,6 +364,10 @@ public class RicezioneServer extends Thread {
 				e.printStackTrace();
 			}	
 		}//while true
+	   }catch(Exception e){
+		   JOptionPane.showMessageDialog(null, "Errore",null,JOptionPane.ERROR_MESSAGE);
+		   return;
+	   }
 	}
 		private void removeFromSuspended(String user, String applicant) {
 			try {

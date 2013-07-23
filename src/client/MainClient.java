@@ -279,11 +279,12 @@ public class MainClient extends JFrame {
 	}
 
 	public class Ascoltatore implements ActionListener {
-
+		WaitingDialog wd = new WaitingDialog();
 		@Override
 		public void actionPerformed(ActionEvent e) {
-
+			
 			if (e.getSource() == connect) {
+				
 				String ip = indServer;
 					 
                 
@@ -300,12 +301,15 @@ public class MainClient extends JFrame {
 				nomeClient = new String(nome);
 				if (!nomeClient.equals("")) {
 					JPasswordField pf = new JPasswordField();
+					
 					pf.addAncestorListener(new RequestFocusListener()); //diamo il focus
+					
                     int okCxl = JOptionPane.showConfirmDialog(null, pf,
 							"Password", JOptionPane.OK_CANCEL_OPTION,
 							JOptionPane.PLAIN_MESSAGE);
-
-					
+                    wd.setVisible(true);
+                
+                    
 					if (okCxl == JOptionPane.OK_OPTION) {
 						
 						password = new String(pf.getPassword());
@@ -349,15 +353,16 @@ public class MainClient extends JFrame {
 							cambiaPass.setEnabled(true);
 							setFont(font);
 							setForeground(colore);
+							wd.setVisible(false);
 							JOptionPane.showMessageDialog(null, null,
-									"connesso al server", 1);
+									"Connessione riuscita!", 1);
 							mc.setTitle("Connesso Come: "+nomeClient);
 						} else {
 							JOptionPane.showMessageDialog(null, null,
-									"Username e/o password Errati",
+									"Dati errati o sessione già attiva!",
 									JOptionPane.ERROR_MESSAGE);
 						}
-						
+						wd.setVisible(false);
 
 					}// se la password non è la stringa vuota
 					else {
@@ -368,6 +373,7 @@ public class MainClient extends JFrame {
 					JOptionPane.showMessageDialog(null, null,
 							"nome utente nullo", JOptionPane.ERROR_MESSAGE);
 				}
+				
 				
 			}// if è stato premuto connect
 			/*
@@ -490,15 +496,29 @@ public class MainClient extends JFrame {
 				if (cc.eConnesso()) {
 					String nomeContatto = JOptionPane
 							.showInputDialog("Nome Contatto");
+					wd.setVisible(true);
+					if(nomeContatto == null || nomeContatto.equals("")){
+						JOptionPane.showMessageDialog(null,"Nome non valido!"
+								,null,JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 					if(!stringControl(nomeContatto)){
 						JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
 								,null,JOptionPane.ERROR_MESSAGE);
 						return;
 					}
+					
 					l.lock();// sincronizzazione lista contatti
 					cc.getLockListaContatti().lock();
 					contatti = cc.getListaContatti();
-					if (!contatti.contains(nomeContatto)
+					boolean contains = false;
+					for (String i : contatti){
+						if (nomeContatto.equals(i.substring(0,i.length()-2))) {
+							contains = true;
+							break;
+						}
+					}
+					if (!contains 
 							&& (!nomeContatto.equals(nomeClient))) {
 						boolean r =cc.aggiungiContatto(nomeContatto);// richiesta aggiunta contatto
 						
@@ -513,6 +533,7 @@ public class MainClient extends JFrame {
 								"Contatto già presente",
 								JOptionPane.ERROR_MESSAGE);
 					}
+					wd.setVisible(false);
 					cc.getLockListaContatti().unlock();
 					l.unlock();
 				}// se è connesso
@@ -534,8 +555,10 @@ public class MainClient extends JFrame {
 				PannelloFont pf = new PannelloFont(mc);
 			}
 			if (e.getSource() == aggiornaLista) {
+				wd.setVisible(true);
 				suspendedUser = cc.getSuspendedList();
 				initializeSuspendedUser();
+				wd.setVisible(false);
 			}
 			if(e.getSource() == disiscrizione){//rimuove l'utente dal DB
 				JPasswordField pf = new JPasswordField();
@@ -589,8 +612,10 @@ public class MainClient extends JFrame {
 					oldPw = new String(pf.getPassword());
 					
 				}
-				if(oldPw == null || oldPw =="")
+				if(oldPw == null || oldPw.equals("")){
+					JOptionPane.showMessageDialog(null, "Password non valida", null, JOptionPane.ERROR_MESSAGE);
 					return;
+				}
 				
 				JPasswordField pf2 = new JPasswordField();
 				pf2.addAncestorListener(new RequestFocusListener()); //diamo il focus
@@ -604,9 +629,11 @@ public class MainClient extends JFrame {
 					newPw = new String(pf2.getPassword());
 					
 				}
-                if(newPw == null || newPw == "")
+                if(newPw == null || newPw.equals("")){
+                	JOptionPane.showMessageDialog(null, "Password non valida", null, JOptionPane.ERROR_MESSAGE);
                 	return;
-                
+                }
+                wd.setVisible(true);
                 boolean r =cc.modificaPass(Security.cryptPassword(oldPw), 
                 		                   Security.cryptPassword(newPw));
                 if(r){
@@ -614,7 +641,7 @@ public class MainClient extends JFrame {
                 }else{
                 	JOptionPane.showMessageDialog(null, "Password non Modificata",null,JOptionPane.ERROR_MESSAGE);
                 }
- 
+                wd.setVisible(false);
             }
             if (e.getSource() == indirizzoServer){
             	indServer = JOptionPane.showInputDialog(null, "Indirizzo del Server", indServer);

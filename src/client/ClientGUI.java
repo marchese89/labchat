@@ -45,7 +45,7 @@ public class ClientGUI extends JFrame{
 
 	private JButton b;
 	private JScrollPane js;
-	private JTextArea ricezione;
+	private TextPaneH ricezione;
 	private JTextArea invio;
 	private Client cc;
 	private ActionListener al;
@@ -59,11 +59,14 @@ public class ClientGUI extends JFrame{
     private JButton addUser;
     private String nomeClient;
     private AscoltatoreFinestra alF; 
+    private boolean [] flag = new boolean[1] ;
+    private String general = "<b><font color = red>Tu:\n</font></b>";
     public void aggiorna () {
     	setTitle("Conversazione con "+dest.toString());
     }
     
 	public ClientGUI(Client cc,Set<String> dest, boolean ghost, int id, String nomeClient) {
+		flag[0] = true;
 		alF = new AscoltatoreFinestra();
 		addWindowListener(alF);
 		this.nomeClient = nomeClient;
@@ -82,12 +85,12 @@ public class ClientGUI extends JFrame{
 		this.setLayout(new BorderLayout());
         //pannelli vari
 		JPanel jp = new JPanel();
-		ricezione = new JTextArea(14, 50);
+		ricezione = new TextPaneH();
 		ricezione.setEditable(false);
-		ricezione.setWrapStyleWord(true);
-		ricezione.setLineWrap(true);
 		ricezione.setFont(new Font("Arial Black", Font.BOLD, 12));//ingrandisce il testo
 		js = new JScrollPane(ricezione);
+		js.setPreferredSize(new Dimension((d.width / 2)-25, (d.height / 4)+40));//TODO
+		js.setMinimumSize(new Dimension((d.width / 2)-25, (d.height / 4)+40));
 		jp.add(js);
 		invio = new JTextArea(4, 45);
 		invio.setWrapStyleWord(true);//va a capo di parola in parola 
@@ -124,7 +127,7 @@ public class ClientGUI extends JFrame{
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		setTitle("Conversazione con "+dest.toString());
-	    rc = new RicezioneClient(cc, ricezione,id,statusLabel,this);
+	    rc = new RicezioneClient(cc, ricezione,id,statusLabel,this, flag);
 	    rc.start();
        
 	}//costrutture
@@ -141,7 +144,7 @@ public class ClientGUI extends JFrame{
     }
     
     public void append (String s) {
-    	ricezione.append(s);
+    	ricezione.appendThat(s);
     }
     public void playSound() {
     	try {
@@ -155,12 +158,16 @@ public class ClientGUI extends JFrame{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
 			if(!fantasma){
 			if (e.getSource() == b) {
 				  if(!invio.getText().equals("")){
 					  cc.sendMessage(id, invio.getText());
 		        //  cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
-			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+					  if (flag[0]) 
+							ricezione.appendWho("Tu:");
+						flag[0] = false;
+					   ricezione.appendThat(invio.getText());
 				  invio.setText("");
 				  statusLabel.setText("");
 				  }
@@ -173,7 +180,11 @@ public class ClientGUI extends JFrame{
 
 			}else{
 				if(!invio.getText().equals("")){
-				   ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+					if (flag[0]) 
+						ricezione.appendWho("Tu:");
+					flag[0] = false;
+					System.out.println(flag);
+				   ricezione.appendThat(invio.getText());
 				   invio.setText("");
 				   statusLabel.setText("");
 				}
@@ -211,13 +222,19 @@ public class ClientGUI extends JFrame{
 	    	if(!invio.getText().equals("")){
 	    		cc.sendMessage(id, invio.getText());
 		         // cc.inviaMessaggio("M"+destinatario + ":" + invio.getText());
-			      ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+	    		if (flag[0]) 
+					ricezione.appendWho("Tu:");
+				flag[0] = false;
+				   ricezione.appendThat(invio.getText());
 				  invio.setText("");
 				  statusLabel.setText("");
 	    	}
 		    }else{
 					  if(!invio.getText().equals("")){
-					  ricezione.append("Hai scritto:\n" + invio.getText() + "\n");
+						  if (flag[0]) 
+								ricezione.appendWho("Tu:");
+							flag[0] = false;
+						   ricezione.appendThat(invio.getText());
 					  invio.setText("");
 					  statusLabel.setText("");
 					  }

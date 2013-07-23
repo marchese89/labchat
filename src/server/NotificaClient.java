@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+
+import javax.swing.JOptionPane;
 /**
  * 
  * @author giovanni
@@ -33,6 +35,10 @@ public class NotificaClient extends Thread{
 		this.c = c;
 	}
 	public void run(){
+		
+		try{
+			
+		
 		while (true){
 			l.lock();
 			
@@ -144,6 +150,12 @@ public class NotificaClient extends Thread{
 				
 			}
 		}//while true
+		
+		}catch(Exception e){
+			//TODO
+			JOptionPane.showMessageDialog(null, "Errore",null,JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 	}
 
 }

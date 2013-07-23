@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -18,8 +19,18 @@ public class ServerGUI extends JFrame {
 	private Server s;
 	private JScrollPane js;
 	private JTextArea ricezione;
+	private static ServerGUI istanza;
+	
+	public static synchronized ServerGUI getServerInstance(){
+		if(ServerGUI.istanza==null)
+			istanza = new ServerGUI(true);
+			
+			return istanza;
+		
+	}
+	public ServerGUI(){}
 
-	public ServerGUI() {
+	public ServerGUI(boolean b) {
 
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		Dimension d = kit.getScreenSize();
@@ -38,7 +49,6 @@ public class ServerGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setTitle("Chat Server");
 		setVisible(true);
-
 		s = new Server(ricezione);
 		Thread t = new Thread(s);
 		t.start();
@@ -48,9 +58,14 @@ public class ServerGUI extends JFrame {
 		ricezione.append(s);
 	}
 	public static void main(String[] args) {
-
-		JFrame f = new ServerGUI();
-
+		JFrame f = null;
+        try{
+		 f= ServerGUI.getServerInstance();
+        }catch(Exception e){
+        	JOptionPane.showMessageDialog(null, "Errore",null,JOptionPane.ERROR_MESSAGE);
+        	f.setVisible(false);
+			return;
+        }
 	}
 
 

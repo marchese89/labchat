@@ -84,6 +84,7 @@ public class GestoreClient extends Thread {
 							nomeClient = st.nextToken();
 							nomeClientPronto = true;
 							password = st.nextToken();
+							if (password!=null)
 							passwordPronta = true;
 						} else {
 							msg.addLast(s);

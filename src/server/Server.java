@@ -14,6 +14,8 @@ import java.util.StringTokenizer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 
 import Utility.Send;
@@ -28,6 +30,7 @@ public class Server implements Runnable {
 	//private Statement stat;
 	private Connection conn;
     private NotificaClient notifica;
+    private RicezioneServer ricez;
     
 	public Server(JTextArea j) {
 		jt = j;
@@ -35,7 +38,8 @@ public class Server implements Runnable {
 		try {
 			s = new ServerSocket(8189);
 		} catch (IOException e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Errore",null,JOptionPane.ERROR_MESSAGE);
+			return;
 		}
 		l = new ReentrantLock();
 	}
@@ -48,12 +52,15 @@ public class Server implements Runnable {
 			jt.append("Connessione DB Stabilita \n");
 			// stat = conn.createStatement();
 		} catch (SQLException e1) {
-			e1.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Errore",null,JOptionPane.ERROR_MESSAGE);
+			return;
 		}
-		
-		RicezioneServer ricez = new RicezioneServer(clients, jt, l,conn);
+		try{
+		ricez = new RicezioneServer(clients, jt, l,conn);
 		ricez.start();
-		
+		}catch(Exception e){
+			
+		}
 		notifica = new NotificaClient(clients, l,conn);
 		notifica.start();
 		
@@ -99,9 +106,12 @@ public class Server implements Runnable {
 				if (!t.eNuovo()) {
 					boolean pwBuona = verificaPass();
 					if (pwBuona) {
+						if(!clients.containsKey(t.getNomeClient())){
 						clients.put(t.getNomeClient(), t);
-						t.inviaMsg("correctlogin");
 						
+						t.inviaMsg("correctlogin");
+						}else
+							t.inviaMsg("failedlogin");
 						
 						Object [][] off = ricez.sendOff(t.getNomeClient());
 						if (off !=null){
@@ -144,7 +154,8 @@ public class Server implements Runnable {
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (Exception e) {
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Errore",null,JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 
 		}// while

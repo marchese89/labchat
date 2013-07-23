@@ -9,13 +9,15 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
 public class RicezioneClient extends Thread{
-    private JTextArea jt;
+    private TextPaneH jt;
     private Client cc;
     private JLabel status;
     private StringTokenizer st;
     private int id;
     private ClientGUI client;
-	public RicezioneClient(Client c,JTextArea jt,int id,JLabel status, ClientGUI client){
+    private boolean [] flag;
+	public RicezioneClient(Client c,TextPaneH jt,int id,JLabel status, ClientGUI client, boolean[]  flag){
+		this.flag = flag;
 		this.client = client;
 		this.jt = jt;
 		this.cc = c;
@@ -36,12 +38,21 @@ public class RicezioneClient extends Thread{
     			}
     			else if (m.length()>2 && m.substring(0,2).equals("##")){
     				client.aggiorna();
-    				jt.append("Aggiunto utente: " + m.substring(2,m.length()) +"\n");
+    				jt.appendWho("Aggiunto utente: " + m.substring(2,m.length()) );
     			}
     			else{
-    			jt.append(m+"\n");
+    			StringTokenizer st = new StringTokenizer(m,":");
+    			String name = st.nextToken();
+    			String msg = st.nextToken();
+    			if (msg!=null && name != null){
+    				st = new StringTokenizer(name," ");
+    				name = new String (st.nextToken());
+    			jt.appendWhoF(name);
+    			jt.appendThat(msg.substring(2));
+    			flag[0] = true;
     			client.playSound();
     			status.setText("");
+    			}
     			}
     		}
     	}

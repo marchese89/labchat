@@ -1,15 +1,21 @@
-Statement for suspended_request:
 
-delimiter $$
 
-CREATE TABLE `suspended_request` (
-  `id` int(11) NOT NULL,
-  `applicant` varchar(15) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8$$
+create table suspended_request(
+    user varchar(40),
+    applicant varchar(40),
+    foreign key (user) references utentiregistrati(username),
+	foreign key (applicant) references utentiregistrati(username),
+	primary key (user,applicant)
+);
 
-Statement for utentiregistrati
-
-delimiter $$
+create table utenti_amici(
+    utente1 varchar(40),
+    utente2 varchar(40),
+    bloccato_da tinyint(1),
+    primary key (utente1,utente2),
+    foreign key (utente1) references utentiregistrati(username),
+    foreign key (utente2) references utentiregistrati(username)
+);
 
 CREATE TABLE `utentiregistrati` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -17,5 +23,5 @@ CREATE TABLE `utentiregistrati` (
   `pass` varchar(80) NOT NULL,
   `email` varchar(35) DEFAULT NULL,
   PRIMARY KEY (`id`,`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8$$
+);
 

@@ -11,7 +11,6 @@ import javax.swing.JTextArea;
 public class RicezioneClient extends Thread{
     private JTextArea jt;
     private Client cc;
-    private String mittente;
     private JLabel status;
     private StringTokenizer st;
     private int id;

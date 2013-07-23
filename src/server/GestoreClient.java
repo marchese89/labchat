@@ -30,13 +30,9 @@ public class GestoreClient extends Thread {
     private boolean nomeClientPronto;
     private boolean emailPronta;
     private boolean utenteNuovo, forgetPassword;
-    //private Connection con ;
-    private JTextArea g;
   
     
-	public GestoreClient(Socket i, Connection conn, JTextArea g) {
-		this.g = g;
-		//this.con = conn;
+	public GestoreClient(Socket i) {
 		incoming = i;
 		nomeClientPronto = false;
 		passwordPronta = false;
@@ -60,7 +56,7 @@ public class GestoreClient extends Thread {
 				while (true) {
 					if (in.hasNextLine()) {
 						String s = in.nextLine();
-						g.append(s+ " da gestore client \n");
+						
 						if(s.charAt(0)=='N'){
 							StringTokenizer st0 = new StringTokenizer(s.substring(1),"¦");
 							utenteNuovo = true;

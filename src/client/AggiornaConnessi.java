@@ -59,6 +59,8 @@ public class AggiornaConnessi extends Thread{
 						 icon = new ImageIcon("images/icon_locked.gif");
 						 System.out.println(utentiCheHoBloccato.toString());
 					 }
+					 else if (utentiCheMiHannoBloccato.contains(i))
+						 icon = new ImageIcon("images/icon_offline.gif");
 					 else
 						 icon = utentiConnessi.contains(i) ? new ImageIcon("images/icon_online.gif") : new ImageIcon("images/icon_offline.gif");
 					 JLabel x = new JLabel(icon);

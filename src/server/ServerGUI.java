@@ -16,7 +16,6 @@ import javax.swing.JTextArea;
 public class ServerGUI extends JFrame {
 
 	private Server s;
-	private JButton b;
 	private JScrollPane js;
 	private JTextArea ricezione;
 

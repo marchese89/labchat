@@ -28,6 +28,7 @@ public class SelectUserPanel extends JFrame {
 	protected static Client c;
 	protected static Integer id; 
 	private Set<String> dest;
+	private SelectUserPanel panel = this;
 	public SelectUserPanel(LinkedList<String> ll, String nomeClient, Client c, int id, Set<String> dest) {
 		this.dest = dest;
 		this.id = id;
@@ -42,7 +43,7 @@ public class SelectUserPanel extends JFrame {
 		setLocation(d.width / 4, d.height / 4);
 		setSize(d.width / 4, d.height / 2);
 		JPanel mainPanel = new JPanel();
-		l = new ActionJList(wordList);
+		l = new ActionJList(wordList, panel);
 		wordList.addMouseListener(l);
 		wordList.setMinimumSize(new Dimension(HEIGHT, WIDTH));
 		wordList.setPreferredSize(new Dimension(250,190));
@@ -64,8 +65,10 @@ public class SelectUserPanel extends JFrame {
 class ActionJList extends MouseAdapter {
 	protected JList list;
 	private String user;
+	private SelectUserPanel panel;
 	
-	public ActionJList(JList l) {
+	public ActionJList(JList l, SelectUserPanel panel) {
+		this.panel = panel;
 		list = l;
 	}
 
@@ -79,6 +82,7 @@ class ActionJList extends MouseAdapter {
 			list.ensureIndexIsVisible(index);
 			user = (String) item;
 			SelectUserPanel.c.addUser(SelectUserPanel.id, user);
+			panel.setVisible(false);
 			}
 		}
 	}

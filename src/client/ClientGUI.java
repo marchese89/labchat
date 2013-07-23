@@ -197,9 +197,8 @@ public class ClientGUI extends JFrame{
             st= new StringTokenizer(ora,":");
             String oraFormatted = st.nextToken()+":"+st.nextToken();
 			cc.inviaMessaggio("<"+cc.getNomeClient()+"<"+oraFormatted+"<"+id);
-			System.out.println(cc.getNomeClient() + " visualizza il messaggio e informa il server (ClientGUI)");
-			//System.out.println("<"+cc.getNomeClient()+"<"+oraFormatted+"<"+destinatario);
-			//System.out.println(oraFormatted);
+			System.out.println(cc.getNomeClient() + 
+					" visualizza il messaggio e informa il server (ClientGUI)");
 			}	
 			
 		}

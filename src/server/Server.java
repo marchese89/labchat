@@ -27,7 +27,8 @@ public class Server implements Runnable {
 	private Lock l;
 	//private Statement stat;
 	private Connection conn;
-
+    private NotificaClient notifica;
+    
 	public Server(JTextArea j) {
 		jt = j;
 		clients = new HashMap<String, GestoreClient>();
@@ -53,20 +54,18 @@ public class Server implements Runnable {
 		RicezioneServer ricez = new RicezioneServer(clients, jt, l,conn);
 		ricez.start();
 		
-		Thread notifica = new NotificaClient(clients, l,conn);
+		notifica = new NotificaClient(clients, l,conn);
 		notifica.start();
 		
 		while (true) {
 			boolean restorePw = false;
 			Socket incoming;
 			try {
-				jt.append("Entro nel while true del Server");
 				incoming = s.accept();
-				t = new GestoreClient(incoming,conn,jt);
+				t = new GestoreClient(incoming);
 				t.start();
 				l.lock();
 				while (!t.nomeClientPronto()) {
-					jt.append("While 1 : Server.java \n");
 				}
 				if (t.forgetPassword()){
 					restorePw = true;
@@ -80,7 +79,6 @@ public class Server implements Runnable {
 						forgetStatement.setString(1, sha1Pass);
 						forgetStatement.setString(2, name);
 						forgetStatement.setString(3, email);
-						jt.append(forgetStatement.toString()+"\n");
 						res = forgetStatement.executeUpdate();
 					}
 					catch (Exception e){}
@@ -193,7 +191,7 @@ public class Server implements Runnable {
 		return pwCorretta;
 	}
 
-	public static Connection getConnection() throws SQLException {
+	private static Connection getConnection() throws SQLException {
 
 		String drivers = "com.mysql.jdbc.Driver";
 		String url = "jdbc:mysql://127.0.0.1:3306/utentichat";//
@@ -204,9 +202,9 @@ public class Server implements Runnable {
 
 		return DriverManager.getConnection(url, username, password);
 	}
-
+    /*
 	public void inviaMessaggio(String m, int i) {
 		clients.get(i).inviaMsg(m);
 	}
-
+    */
 }

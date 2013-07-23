@@ -27,16 +27,8 @@ public class NotificaBloccati extends Thread{
 		   contatti = new LinkedList<String>(c.getListaContatti());
 		   if(contatti.size()>0){
 		   for(String i:contatti){
-			   //try{
+			   
 			   st = new StringTokenizer(i," ");
-			   /*
-			   }catch(Exception e){
-				   System.out.println("lista originale: "+c.getListaContatti());
-				   System.out.println("lista appoggio: "+contatti);
-				   System.out.println("lista contatti: "+utentiCheMiHannoBloccato);
-				   break;
-			   }
-			   */
 			   candidato = st.nextToken();
 			   tf = st.nextToken();
 			   if(tf.charAt(0) == 't'){

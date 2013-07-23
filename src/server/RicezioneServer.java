@@ -181,17 +181,20 @@ public class RicezioneServer extends Thread {
 									String user = result.getString(1);
 									if(clients.containsKey(user)){
 										newSuspendedRequest(j,destinatario);
-									    clients.get(user).inviaMsg("?"+j);
+									    clients.get(user).inviaMsg("?"+j); //mandare la notifica mentre è online!
+									    System.out.println("Il server invia il messaggio: l'utente esiste ed è online");
 									}
 									else{
 										newSuspendedRequest(j,destinatario);
 									}
 									//il contatto da aggiungere esiste
 									clients.get(j).inviaMsg("Zy");	
+									System.out.println("Il server invia il messaggio: l'utente esiste");
 								}else{
 									//il contatto da aggiungere non esiste
 									//System.out.println("il contatto da aggiungere non esiste");
 									clients.get(j).inviaMsg("Zn");
+									System.out.println("Il server invia la richiesta: l'utente non esiste");
 								}
 							} catch (SQLException e) {
 								e.printStackTrace();
@@ -387,6 +390,7 @@ public class RicezioneServer extends Thread {
 		insert.setString(1, destinatario);//chi riceve la richiesta
 		insert.setString(2,mittente);//chi ha fatto la richiesta 
 		insert.execute();
+		System.out.println("Il server inserisce la richiesa nel DB");
 			
 			}
 			catch (SQLException e) {

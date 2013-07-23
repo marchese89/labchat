@@ -496,7 +496,6 @@ public class MainClient extends JFrame {
 				if (cc.eConnesso()) {
 					String nomeContatto = JOptionPane
 							.showInputDialog("Nome Contatto");
-					wd.setVisible(true);
 					if(nomeContatto == null || nomeContatto.equals("")){
 						JOptionPane.showMessageDialog(null,"Nome non valido!"
 								,null,JOptionPane.ERROR_MESSAGE);
@@ -533,7 +532,6 @@ public class MainClient extends JFrame {
 								"Contatto già presente",
 								JOptionPane.ERROR_MESSAGE);
 					}
-					wd.setVisible(false);
 					cc.getLockListaContatti().unlock();
 					l.unlock();
 				}// se è connesso

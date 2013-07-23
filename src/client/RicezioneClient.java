@@ -39,16 +39,18 @@ public class RicezioneClient extends Thread{
     			else if (m.length()>2 && m.substring(0,2).equals("##")){
     				client.aggiorna();
     				jt.appendWho("Aggiunto utente: " + m.substring(2,m.length()) );
+    				jt.setCaretPosition(jt.getDocument().getLength());
     			}
     			else{
     			StringTokenizer st = new StringTokenizer(m,":");
     			String name = st.nextToken();
-    			String msg = st.nextToken();
+    			String msg = m.substring(name.length()-1);
     			if (msg!=null && name != null){
     				st = new StringTokenizer(name," ");
     				name = new String (st.nextToken());
     			jt.appendWhoF(name);
-    			jt.appendThat(msg.substring(2));
+    			jt.appendThat(msg.substring(4));
+    			jt.setCaretPosition(jt.getDocument().getLength());
     			flag[0] = true;
     			client.playSound();
     			status.setText("");

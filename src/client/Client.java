@@ -15,6 +15,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -59,21 +60,21 @@ import javax.swing.JOptionPane;
 		public boolean Disiscrizione(String pass){
 			inviaMessaggio("D"+pass);
 			try{
-				dC.acquire();
+				dC.tryAcquire(3,TimeUnit.SECONDS);
 			}catch(InterruptedException e){}
 			return disCorretta;
 		}
 		public boolean modificaPass(String oldPass,String newPass){
 			inviaMessaggio("C"+oldPass+"¦"+newPass);
 			try{
-				modPass.acquire();
+				modPass.tryAcquire(3,TimeUnit.SECONDS);
 			}catch(InterruptedException e){}
 			return modPassOk;
 		}
 		public boolean aggiungiContatto(String target){
 			inviaMessaggio("A"+ target);
 			try{
-			esistenza.acquire();
+			esistenza.tryAcquire(3,TimeUnit.SECONDS);
 			}catch(InterruptedException e){}
 			return esiste;
 		}
@@ -95,7 +96,7 @@ import javax.swing.JOptionPane;
 		public void addDest(String dest, Font f, Color c, boolean ghost) { 
 			inviaMessaggio("ri^"+nomeClient+"^"+dest);
 			try {
-				id.acquire();
+				id.tryAcquire(3,TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -298,7 +299,7 @@ import javax.swing.JOptionPane;
 						if (!finestreUtenti.containsKey(id)) {
 							inviaMessaggio("(:" + id+"(:" + nomeClient); //richiedo la lista degli utenti di quella conversazione
 							try {
-								list.acquire();
+								list.tryAcquire(3,TimeUnit.SECONDS);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -454,7 +455,7 @@ import javax.swing.JOptionPane;
 		public LinkedList<String> getSuspendedList() {
 			inviaMessaggio("ç:"+nomeClient);
 			try {
-				sem.acquire();
+				sem.tryAcquire(3,TimeUnit.SECONDS);
 				
 			} catch (InterruptedException e) {
 				e.printStackTrace();

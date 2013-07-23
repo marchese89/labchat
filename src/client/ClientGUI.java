@@ -145,6 +145,7 @@ public class ClientGUI extends JFrame{
     
     public void append (String s) {
     	ricezione.appendThat(s);
+    	ricezione.setCaretPosition(ricezione.getDocument().getLength());
     }
     public void playSound() {
     	try {
@@ -168,6 +169,7 @@ public class ClientGUI extends JFrame{
 							ricezione.appendWho("Tu:");
 						flag[0] = false;
 					   ricezione.appendThat(invio.getText());
+					   ricezione.setCaretPosition(ricezione.getDocument().getLength());
 				  invio.setText("");
 				  statusLabel.setText("");
 				  }
@@ -185,6 +187,7 @@ public class ClientGUI extends JFrame{
 					flag[0] = false;
 					System.out.println(flag);
 				   ricezione.appendThat(invio.getText());
+				   ricezione.setCaretPosition(ricezione.getDocument().getLength());
 				   invio.setText("");
 				   statusLabel.setText("");
 				}
@@ -226,6 +229,7 @@ public class ClientGUI extends JFrame{
 					ricezione.appendWho("Tu:");
 				flag[0] = false;
 				   ricezione.appendThat(invio.getText());
+				   ricezione.setCaretPosition(ricezione.getDocument().getLength());
 				  invio.setText("");
 				  statusLabel.setText("");
 	    	}
@@ -235,6 +239,7 @@ public class ClientGUI extends JFrame{
 								ricezione.appendWho("Tu:");
 							flag[0] = false;
 						   ricezione.appendThat(invio.getText());
+						   ricezione.setCaretPosition(ricezione.getDocument().getLength());
 					  invio.setText("");
 					  statusLabel.setText("");
 					  }

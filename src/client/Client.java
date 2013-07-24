@@ -100,7 +100,7 @@ import javax.swing.JOptionPane;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			System.out.println(id + " ID");
+			
 			if (ID!=-1) {
 			Set<String> ll = new HashSet<>();
 			ll.add(dest);
@@ -113,7 +113,7 @@ import javax.swing.JOptionPane;
 			f1.setFont(f);
 			f1.setForeground(c);
 			ID = -1;
-			System.out.println("aggiunto un client");
+			
 			}
 			else {
 				throw new IllegalArgumentException ("ID = -1");
@@ -351,13 +351,9 @@ import javax.swing.JOptionPane;
                     st.nextToken();//rimuoviamo il mittente
 					st.nextToken();//rimuoviamo l'ora
 					Integer id = Integer.parseInt(st.nextToken());
-					if (usersgroup.containsKey(id) && usersgroup.get(id).size()==1){
-						System.out.println("L'altro client riceve il messaggio dal server e si appronta a stampare visualizzato alle...");
+					if (usersgroup.containsKey(id) && usersgroup.get(id).size()==1)
 						messaggi.get(id).addLast(line);
-					}
-					else {
-						System.out.println("L'altro client riceve il messaggio dal server ma la conversazione non sembra a due utenti");
-					}
+					
 				}else if (line.charAt(0)=='Z'){//messaggio che conferma l'esistenza di un client
 					if(line.charAt(1)=='y'){
 						esiste = true;

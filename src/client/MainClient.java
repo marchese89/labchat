@@ -294,7 +294,7 @@ public class MainClient extends JFrame {
 				if (nome == null || nome == "")
 					return;
 				if(!stringControl(nome)){
-					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§, -"
 							,null,JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -411,7 +411,7 @@ public class MainClient extends JFrame {
 						.showInputDialog("Inserisci il tuo nome utente");
 				if (user == null || user == "") return;
 				if(!stringControl(user)){
-					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§, -"
 							,null,JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -419,7 +419,7 @@ public class MainClient extends JFrame {
 						.showInputDialog("Inserisci la tua mail");
 				if ( email== null || email == "") return;
 				if(!stringControl(email)){
-					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§, -"
 							,null,JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -454,7 +454,7 @@ public class MainClient extends JFrame {
 				if(user_name == null || user_name == "")
 					return;
 				if(!stringControl(user_name)){
-					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§, -"
 							,null,JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -474,7 +474,7 @@ public class MainClient extends JFrame {
 				if (email == null || email =="")
 					return;
 				if(!stringControl(email)){
-					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
+					JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§, -"
 							,null,JOptionPane.ERROR_MESSAGE);
 					return;
 				}
@@ -502,7 +502,7 @@ public class MainClient extends JFrame {
 						return;
 					}
 					if(!stringControl(nomeContatto)){
-						JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§"
+						JOptionPane.showMessageDialog(null,"caratteri non consentiti:\n¦&{[*^ç<:(§, -"
 								,null,JOptionPane.ERROR_MESSAGE);
 						return;
 					}
@@ -542,8 +542,7 @@ public class MainClient extends JFrame {
 				cc.getLockListaContatti().lock();
 				LinkedList<String> utentiBloccati = new LinkedList<String>(
 						cc.getUtentiBloccati());
-				System.out.println("lista Contatti: " + contatti);
-				System.out.println("utenti bloccati: " + utentiBloccati);
+				
 				cc.getLockListaContatti().unlock();
 				JFrame pC = new PannelloContatti(contatti, utentiBloccati);
 				l.unlock();
@@ -680,7 +679,10 @@ public class MainClient extends JFrame {
 				case '<':return false;
 				case ':':return false;
 				case '(':return false;
-				case '§' : return false;
+				case '§' :return false;
+				case ',' :return false;
+				case ' ' :return false;
+				case '-': return false;
                 
 				}
 			}

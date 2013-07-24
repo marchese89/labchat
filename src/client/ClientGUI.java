@@ -185,7 +185,7 @@ public class ClientGUI extends JFrame{
 					if (flag[0]) 
 						ricezione.appendWho("Tu:");
 					flag[0] = false;
-					System.out.println(flag);
+					
 				   ricezione.appendThat(invio.getText());
 				   ricezione.setCaretPosition(ricezione.getDocument().getLength());
 				   invio.setText("");
@@ -211,8 +211,7 @@ public class ClientGUI extends JFrame{
             st= new StringTokenizer(ora,":");
             String oraFormatted = st.nextToken()+":"+st.nextToken();
 			cc.inviaMessaggio("<"+cc.getNomeClient()+"<"+oraFormatted+"<"+id);
-			System.out.println(cc.getNomeClient() + 
-					" visualizza il messaggio e informa il server (ClientGUI)");
+
 			}	
 			
 		}
